@@ -142,21 +142,37 @@ if not st.session_state.get("logged_in_store"):
 current_store = st.session_state["logged_in_store"]
 store_phone = current_store["phone_number"]
 shop_name = current_store["shop_name"]
+owner_name = current_store["owner_name"]
 shop_upi = current_store["upi_id"]
 
-# Sidebar Profile & Logout
+# --- SIDEBAR PROFILE & SETTINGS ---
 st.sidebar.markdown(f"### 🏪 **{shop_name}**")
-st.sidebar.caption(f"👤 Owner: {current_store['owner_name']}")
-st.sidebar.caption(f"📞 Phone: +91 {store_phone}")
-st.sidebar.info(f"💳 Active Store UPI: `{shop_upi}`")
+st.sidebar.caption(f"👤 Owner: **{owner_name}**")
+st.sidebar.caption(f"📞 Registered Mobile: `+91 {store_phone}`")
+st.sidebar.info(f"💳 Active UPI: `{shop_upi}`")
 
-with st.sidebar.expander("⚙️ Update UPI ID"):
-    new_upi_val = st.text_input("New UPI ID", value=shop_upi)
-    if st.button("Save New UPI"):
-        db.update_shopkeeper_upi(store_phone, new_upi_val)
-        st.session_state["logged_in_store"]["upi_id"] = new_upi_val
-        st.success("UPI ID updated!")
-        st.rerun()
+# Expandable Profile Editor Form
+with st.sidebar.expander("⚙️ Edit Store Details"):
+    with st.form("edit_profile_form"):
+        updated_shop_name = st.text_input("Store Name (दुकानाचे नाव)", value=shop_name)
+        updated_owner_name = st.text_input("Owner Name (मालकाचे नाव)", value=owner_name)
+        updated_upi = st.text_input("Store UPI ID (पेमेंटसाठी UPI)", value=shop_upi)
+        
+        save_changes = st.form_submit_button("💾 Save Profile Changes", use_container_width=True, type="primary")
+        
+        if save_changes:
+            if updated_shop_name and updated_owner_name and updated_upi:
+                db.update_shopkeeper_profile(store_phone, updated_shop_name, updated_owner_name, updated_upi)
+                
+                # Update current active session
+                st.session_state["logged_in_store"]["shop_name"] = updated_shop_name
+                st.session_state["logged_in_store"]["owner_name"] = updated_owner_name
+                st.session_state["logged_in_store"]["upi_id"] = updated_upi
+                
+                st.toast("✅ Store details updated successfully!")
+                st.rerun()
+            else:
+                st.error("Please fill in all fields.")
 
 if st.sidebar.button("🚪 Logout Store", use_container_width=True):
     st.session_state["logged_in_store"] = None
