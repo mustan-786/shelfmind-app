@@ -17,13 +17,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Adaptive Light/Dark Theme + Bottom Banking Navigation Bar CSS
+# FIXED VIEWPORT BOTTOM BAR & RESPONSIVE MOBILE CSS
 st.markdown("""
 <style>
-    /* Spacing for fixed bottom bar */
+    /* Prevent content from hiding behind the fixed bottom bar */
     .main .block-container {
-        padding-bottom: 110px !important;
-        padding-top: 1.5rem !important;
+        padding-bottom: 115px !important;
+        padding-top: 1.2rem !important;
+        max-width: 600px !important;
     }
     
     /* Header Branding */
@@ -99,43 +100,50 @@ st.markdown("""
     .udhar-name { font-size: 15px; font-weight: 700; }
     .udhar-amount { font-size: 17px; font-weight: 800; color: #E11D48; }
 
-    /* Fixed Bottom Navigation Bar Container */
-    div[data-testid="stHorizontalBlock"]:has(.nav-marker) {
+    /* --- FIXED BOTTOM NAVIGATION CONTAINER --- */
+    #bottom-nav-root {
         position: fixed !important;
         bottom: 0px !important;
         left: 0px !important;
         right: 0px !important;
         width: 100vw !important;
-        background-color: var(--background-color) !important;
+        background-color: var(--secondary-background-color) !important;
         border-top: 1px solid rgba(128, 128, 128, 0.25) !important;
-        padding: 8px 12px 14px 12px !important;
-        z-index: 999999 !important;
-        box-shadow: 0 -4px 12px rgba(0,0,0,0.1) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-around !important;
+        padding: 8px 12px 18px 12px !important;
+        z-index: 9999999 !important;
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.15) !important;
     }
 
-    /* Primary Large Scan Button Styling */
-    div[data-testid="stHorizontalBlock"]:has(.nav-marker) button[kind="primary"] {
+    /* Style the buttons inside the bottom navigation bar */
+    #bottom-nav-root [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        max-width: 500px !important;
+        margin: 0 auto !important;
+    }
+
+    /* Center Elevated Scan Button */
+    #bottom-nav-root [data-testid="column"]:nth-of-type(2) button {
         background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
-        border: 3px solid var(--background-color) !important;
-        border-radius: 50px !important;
+        color: #FFFFFF !important;
+        border: 3px solid var(--secondary-background-color) !important;
+        border-radius: 40px !important;
         height: 52px !important;
         font-weight: 800 !important;
-        font-size: 14px !important;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4) !important;
-        transform: translateY(-8px);
+        font-size: 13px !important;
+        transform: translateY(-12px) !important;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
     }
-    
-    /* Secondary Bottom Nav Buttons */
-    div[data-testid="stHorizontalBlock"]:has(.nav-marker) button[kind="secondary"] {
+
+    /* Standard Tabs */
+    #bottom-nav-root [data-testid="column"]:not(:nth-of-type(2)) button {
         border-radius: 10px !important;
         font-size: 11px !important;
         font-weight: 600 !important;
-        padding: 6px 4px !important;
-        border: none !important;
-        background-color: transparent !important;
+        padding: 6px 2px !important;
+        border: 1px solid rgba(128,128,128,0.15) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -157,7 +165,7 @@ if "logged_in_store" not in st.session_state or st.session_state["logged_in_stor
         if cached_store:
             st.session_state["logged_in_store"] = cached_store
 
-# Current Screen State
+# Current Screen State (Default to Scan View)
 if "active_tab" not in st.session_state:
     st.session_state["active_tab"] = "scan"
 
@@ -279,11 +287,11 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 📱 SCREEN VIEW ROUTING (Controlled by Bottom Nav Bar)
+# 📱 ACTIVE SCREEN VIEW ROUTING
 # -------------------------------------------------------------
 current_view = st.session_state["active_tab"]
 
-# === VIEW 1: SCAN INVOICE (Center Action Screen) ===
+# === SCREEN 1: SCAN BILL (Center Elevated Action) ===
 if current_view == "scan":
     st.markdown(f"### 📷 {t['upload_heading']}")
     st.caption(t["upload_sub"])
@@ -333,7 +341,7 @@ if current_view == "scan":
                 st.session_state["active_tab"] = "inventory"
                 st.rerun()
 
-# === VIEW 2: INVENTORY ===
+# === SCREEN 2: INVENTORY ===
 elif current_view == "inventory":
     st.markdown("### 📦 Store Inventory")
     
@@ -369,7 +377,7 @@ elif current_view == "inventory":
     else:
         st.info(t["no_stock"])
 
-# === VIEW 3: UDHARI LEDGER ===
+# === SCREEN 3: UDHARI LEDGER ===
 elif current_view == "udhar":
     st.markdown("### 📒 Udhar (Credit) Ledger")
     
@@ -440,38 +448,40 @@ elif current_view == "udhar":
     else:
         st.info(t["no_udhar"])
 
-# === VIEW 4: DEMAND RADAR ===
+# === SCREEN 4: DEMAND RADAR ===
 elif current_view == "radar":
     st.markdown("### ⚡ Demand Sensing Radar")
     st.info("🌧️ **Regional Weather Radar:** Live monsoon & temperature sensors linked. High demand predicted for Tea, Spices, and Instant Snacks.")
     st.warning("⚠️ **Dead-Stock Estimator:** Bayesian velocity monitoring active. Items inactive for >30 days will trigger discount liquidation suggestions.")
 
 # -------------------------------------------------------------
-# 💳 FIXED BOTTOM NAVIGATION BAR (Fintech App Layout)
+# 💳 FIXED BOTTOM NAVIGATION BAR (Anchored to Viewport Bottom)
 # -------------------------------------------------------------
-st.markdown('<div class="nav-marker"></div>', unsafe_allow_html=True)
-nav1, nav2, nav3, nav4 = st.columns([1, 1.3, 1, 1])
+st.markdown('<div id="bottom-nav-root">', unsafe_allow_html=True)
+nav_col1, nav_col2, nav_col3, nav_col4 = st.columns([1, 1.4, 1, 1])
 
-with nav1:
-    if st.button("📦 Stock", use_container_width=True, type="secondary" if current_view != "inventory" else "primary"):
+with nav_col1:
+    if st.button("📦 Stock", key="btn_nav_stock", use_container_width=True, type="primary" if current_view == "inventory" else "secondary"):
         st.session_state["active_tab"] = "inventory"
         st.rerun()
 
-with nav2:
-    # Prominent Center Scan Button
-    if st.button("📷 SCAN BILL", use_container_width=True, type="primary" if current_view == "scan" else "secondary"):
+with nav_col2:
+    # Big Elevated Center Action Button
+    if st.button("📷 SCAN BILL", key="btn_nav_scan", use_container_width=True, type="primary"):
         st.session_state["active_tab"] = "scan"
         st.rerun()
 
-with nav3:
-    if st.button("📒 Udhar", use_container_width=True, type="secondary" if current_view != "udhar" else "primary"):
+with nav_col3:
+    if st.button("📒 Udhar", key="btn_nav_udhar", use_container_width=True, type="primary" if current_view == "udhar" else "secondary"):
         st.session_state["active_tab"] = "udhar"
         st.rerun()
 
-with nav4:
-    if st.button("⚡ Radar", use_container_width=True, type="secondary" if current_view != "radar" else "primary"):
+with nav_col4:
+    if st.button("⚡ Radar", key="btn_nav_radar", use_container_width=True, type="primary" if current_view == "radar" else "secondary"):
         st.session_state["active_tab"] = "radar"
         st.rerun()
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
 # ⚙️ SIDEBAR: PROFILE SETTINGS & LOGOUT
