@@ -1,10 +1,36 @@
 import streamlit as st
+import os
+from PIL import Image
+
+# 1. Page Configuration MUST be the FIRST Streamlit call
+logo_path = "logo.png"
+if os.path.exists(logo_path):
+    page_icon = Image.open(logo_path)
+else:
+    page_icon = "📦"
+
+st.set_page_config(
+    page_title="SHELF MIND",
+    page_icon=page_icon,
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
+
+# 2. Inject Mobile PWA Meta & App Title (Forces "SHELF MIND" on mobile homescreen)
+st.markdown("""
+    <script>
+        document.title = "SHELF MIND";
+    </script>
+    <meta name="apple-mobile-web-app-title" content="SHELF MIND">
+    <meta name="application-name" content="SHELF MIND">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+""", unsafe_allow_html=True)
+
 import pandas as pd
 import urllib.parse
 import qrcode
 import io
-import os
-from PIL import Image
 from datetime import date
 from translations import TRANSLATIONS
 from ocr_pipeline import extract_invoice_data_with_ai
@@ -13,28 +39,6 @@ import sms_service
 
 # Initialize Database
 db.init_db()
-
-# Mobile App Icon
-logo_path = "logo.png"
-app_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
-
-st.set_page_config(
-    page_title="SHELF MIND",
-    page_icon=app_icon,
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
-# Custom PWA Meta Tags for Mobile Shortcut
-st.markdown("""
-    <head>
-        <title>SHELF MIND</title>
-        <meta name="apple-mobile-web-app-title" content="SHELF MIND">
-        <meta name="application-name" content="SHELF MIND">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="mobile-web-app-capable" content="yes">
-    </head>
-""", unsafe_allow_html=True)
 
 # Language Selector
 lang_choice = st.selectbox(
