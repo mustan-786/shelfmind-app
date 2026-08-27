@@ -1,13 +1,19 @@
 import streamlit as st
 import os
+import base64
 from PIL import Image
 
-# 1. Page Configuration MUST be the FIRST Streamlit call
 logo_path = "logo.png"
+
+# 1. Load Custom App Icon for Streamlit
 if os.path.exists(logo_path):
     page_icon = Image.open(logo_path)
+    with open(logo_path, "rb") as img_f:
+        b64_logo = base64.b64encode(img_f.read()).decode("utf-8")
+        icon_data_uri = f"data:image/png;base64,{b64_logo}"
 else:
     page_icon = "📦"
+    icon_data_uri = ""
 
 st.set_page_config(
     page_title="SHELF MIND",
@@ -16,17 +22,39 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Inject Mobile PWA Meta & App Title (Forces "SHELF MIND" on mobile homescreen)
-st.markdown("""
+# 2. Force Mobile Browser Home Screen Metadata (Icon + App Name)
+pwa_header_html = f"""
     <script>
         document.title = "SHELF MIND";
+        
+        // Dynamically inject apple-touch-icon and shortcut icons into mobile browser head
+        function setAppMeta() {{
+            var iconUri = "{icon_data_uri}";
+            if (iconUri) {{
+                // Home screen icon for iOS / Android
+                var linkApple = document.createElement('link');
+                linkApple.rel = 'apple-touch-icon';
+                linkApple.href = iconUri;
+                document.getElementsByTagName('head')[0].appendChild(linkApple);
+
+                var linkFavicon = document.createElement('link');
+                linkFavicon.rel = 'shortcut icon';
+                linkFavicon.type = 'image/png';
+                linkFavicon.href = iconUri;
+                document.getElementsByTagName('head')[0].appendChild(linkFavicon);
+            }}
+        }}
+        setAppMeta();
     </script>
     <meta name="apple-mobile-web-app-title" content="SHELF MIND">
     <meta name="application-name" content="SHELF MIND">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-""", unsafe_allow_html=True)
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+"""
+st.markdown(pwa_header_html, unsafe_allow_html=True)
 
+# Rest of your imports and code...
 import pandas as pd
 import urllib.parse
 import qrcode
@@ -37,7 +65,6 @@ from ocr_pipeline import extract_invoice_data_with_ai
 import database as db
 import sms_service
 
-# Initialize Database
 db.init_db()
 
 # Language Selector
