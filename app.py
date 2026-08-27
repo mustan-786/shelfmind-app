@@ -17,12 +17,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# FIXED VIEWPORT BOTTOM BAR & RESPONSIVE MOBILE CSS
+# FIXED VIEWPORT BOTTOM BAR CSS (Targeting specific Streamlit container)
 st.markdown("""
 <style>
-    /* Prevent content from hiding behind the fixed bottom bar */
+    /* Viewport padding so content never gets hidden behind the floating bar */
     .main .block-container {
-        padding-bottom: 115px !important;
+        padding-bottom: 120px !important;
         padding-top: 1.2rem !important;
         max-width: 600px !important;
     }
@@ -100,47 +100,40 @@ st.markdown("""
     .udhar-name { font-size: 15px; font-weight: 700; }
     .udhar-amount { font-size: 17px; font-weight: 800; color: #E11D48; }
 
-    /* --- FIXED BOTTOM NAVIGATION CONTAINER --- */
-    #bottom-nav-root {
-        position: fixed !important;
-        bottom: 0px !important;
-        left: 0px !important;
-        right: 0px !important;
-        width: 100vw !important;
+    /* --- VIEWPORT FIXED BOTTOM NAVIGATION DOCK --- */
+    div[data-testid="stBottom"] > div {
         background-color: var(--secondary-background-color) !important;
         border-top: 1px solid rgba(128, 128, 128, 0.25) !important;
-        padding: 8px 12px 18px 12px !important;
-        z-index: 9999999 !important;
-        box-shadow: 0 -4px 16px rgba(0,0,0,0.15) !important;
+        padding: 10px 14px 18px 14px !important;
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.18) !important;
     }
 
-    /* Style the buttons inside the bottom navigation bar */
-    #bottom-nav-root [data-testid="stHorizontalBlock"] {
+    div[data-testid="stBottom"] [data-testid="stHorizontalBlock"] {
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
-        gap: 6px !important;
+        gap: 8px !important;
         max-width: 500px !important;
         margin: 0 auto !important;
     }
 
-    /* Center Elevated Scan Button */
-    #bottom-nav-root [data-testid="column"]:nth-of-type(2) button {
+    /* Center Elevated SCAN Button */
+    div[data-testid="stBottom"] [data-testid="column"]:nth-of-type(2) button {
         background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
         color: #FFFFFF !important;
         border: 3px solid var(--secondary-background-color) !important;
-        border-radius: 40px !important;
+        border-radius: 50px !important;
         height: 52px !important;
         font-weight: 800 !important;
         font-size: 13px !important;
-        transform: translateY(-12px) !important;
+        transform: translateY(-14px) !important;
         box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
     }
 
     /* Standard Tabs */
-    #bottom-nav-root [data-testid="column"]:not(:nth-of-type(2)) button {
+    div[data-testid="stBottom"] [data-testid="column"]:not(:nth-of-type(2)) button {
         border-radius: 10px !important;
-        font-size: 11px !important;
+        font-size: 12px !important;
         font-weight: 600 !important;
         padding: 6px 2px !important;
         border: 1px solid rgba(128,128,128,0.15) !important;
@@ -291,7 +284,7 @@ st.markdown(f"""
 # -------------------------------------------------------------
 current_view = st.session_state["active_tab"]
 
-# === SCREEN 1: SCAN BILL (Center Elevated Action) ===
+# === SCREEN 1: SCAN BILL ===
 if current_view == "scan":
     st.markdown(f"### 📷 {t['upload_heading']}")
     st.caption(t["upload_sub"])
@@ -455,33 +448,30 @@ elif current_view == "radar":
     st.warning("⚠️ **Dead-Stock Estimator:** Bayesian velocity monitoring active. Items inactive for >30 days will trigger discount liquidation suggestions.")
 
 # -------------------------------------------------------------
-# 💳 FIXED BOTTOM NAVIGATION BAR (Anchored to Viewport Bottom)
+# 💳 NATIVE FIXED VIEWPORT BOTTOM BAR (Using st.bottom)
 # -------------------------------------------------------------
-st.markdown('<div id="bottom-nav-root">', unsafe_allow_html=True)
-nav_col1, nav_col2, nav_col3, nav_col4 = st.columns([1, 1.4, 1, 1])
+with st.bottom():
+    nav_col1, nav_col2, nav_col3, nav_col4 = st.columns([1, 1.4, 1, 1])
 
-with nav_col1:
-    if st.button("📦 Stock", key="btn_nav_stock", use_container_width=True, type="primary" if current_view == "inventory" else "secondary"):
-        st.session_state["active_tab"] = "inventory"
-        st.rerun()
+    with nav_col1:
+        if st.button("📦 Stock", key="btn_nav_stock", use_container_width=True, type="primary" if current_view == "inventory" else "secondary"):
+            st.session_state["active_tab"] = "inventory"
+            st.rerun()
 
-with nav_col2:
-    # Big Elevated Center Action Button
-    if st.button("📷 SCAN BILL", key="btn_nav_scan", use_container_width=True, type="primary"):
-        st.session_state["active_tab"] = "scan"
-        st.rerun()
+    with nav_col2:
+        if st.button("📷 SCAN", key="btn_nav_scan", use_container_width=True, type="primary"):
+            st.session_state["active_tab"] = "scan"
+            st.rerun()
 
-with nav_col3:
-    if st.button("📒 Udhar", key="btn_nav_udhar", use_container_width=True, type="primary" if current_view == "udhar" else "secondary"):
-        st.session_state["active_tab"] = "udhar"
-        st.rerun()
+    with nav_col3:
+        if st.button("📒 Udhar", key="btn_nav_udhar", use_container_width=True, type="primary" if current_view == "udhar" else "secondary"):
+            st.session_state["active_tab"] = "udhar"
+            st.rerun()
 
-with nav_col4:
-    if st.button("⚡ Radar", key="btn_nav_radar", use_container_width=True, type="primary" if current_view == "radar" else "secondary"):
-        st.session_state["active_tab"] = "radar"
-        st.rerun()
-
-st.markdown('</div>', unsafe_allow_html=True)
+    with nav_col4:
+        if st.button("⚡ Radar", key="btn_nav_radar", use_container_width=True, type="primary" if current_view == "radar" else "secondary"):
+            st.session_state["active_tab"] = "radar"
+            st.rerun()
 
 # -------------------------------------------------------------
 # ⚙️ SIDEBAR: PROFILE SETTINGS & LOGOUT
