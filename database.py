@@ -8,7 +8,6 @@ def get_connection():
     return sqlite3.connect(DB_NAME, check_same_thread=False)
 
 def init_db():
-    """Initializes tables for Shopkeepers, Store Inventories, and Udhar Records."""
     conn = get_connection()
     cursor = conn.cursor()
     
@@ -52,11 +51,9 @@ def init_db():
             status TEXT DEFAULT 'Pending'
         )
     """)
-    
     conn.commit()
     conn.close()
 
-# --- SHOPKEEPER CRUD ---
 def register_shopkeeper(shop_name, owner_name, phone_number, upi_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -93,7 +90,6 @@ def update_shopkeeper_upi(phone_number, new_upi_id):
     conn.commit()
     conn.close()
 
-# --- INVENTORY CRUD ---
 def add_or_update_stock(store_phone, items_list):
     conn = get_connection()
     cursor = conn.cursor()
@@ -120,7 +116,7 @@ def add_or_update_stock(store_phone, items_list):
         else:
             cursor.execute("""
                 INSERT INTO inventory (store_phone, item_name, quantity, wholesale_rate, last_restocked, status)
-                VALUES (?, ?, ?, ?, ?, 'New SKU')
+                VALUES (?, ?, ?, ?, ?, 'Active')
             """, (clean_phone, name, qty, rate, today_str))
             
     conn.commit()
@@ -151,18 +147,16 @@ def get_kpi_metrics(store_phone):
     conn.close()
     return total_skus, round(total_capital, 2), round(dead_capital, 2)
 
-# --- UDHAR CRUD ---
 def add_udhar_entry(store_phone, customer_name, customer_phone, amount, items_note, due_date):
     conn = get_connection()
     cursor = conn.cursor()
     credit_date = datetime.now().strftime("%Y-%m-%d")
-    clean_store_phone = store_phone.replace("+91", "").replace(" ", "").strip()
-    clean_cust_phone = customer_phone.replace("+91", "").replace(" ", "").strip()
-    
+    clean_store = store_phone.replace("+91", "").replace(" ", "").strip()
+    clean_cust = customer_phone.replace("+91", "").replace(" ", "").strip()
     cursor.execute("""
         INSERT INTO udhar_ledger (store_phone, customer_name, customer_phone, amount, items_note, credit_date, due_date, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-    """, (clean_store_phone, customer_name.strip(), clean_cust_phone, amount, items_note.strip(), credit_date, str(due_date)))
+    """, (clean_store, customer_name.strip(), clean_cust, amount, items_note.strip(), credit_date, str(due_date)))
     conn.commit()
     conn.close()
 
@@ -191,16 +185,3 @@ def get_total_udhar_pending(store_phone):
     total = cursor.fetchone()[0] or 0.0
     conn.close()
     return round(total, 2)
-
-def update_shopkeeper_profile(phone_number, new_shop_name, new_owner_name, new_upi_id):
-    """Updates the store name, owner name, and UPI ID for an existing store."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    clean_phone = phone_number.replace("+91", "").replace(" ", "").strip()
-    cursor.execute("""
-        UPDATE shopkeepers 
-        SET shop_name = ?, owner_name = ?, upi_id = ?
-        WHERE phone_number = ?
-    """, (new_shop_name.strip(), new_owner_name.strip(), new_upi_id.strip(), clean_phone))
-    conn.commit()
-    conn.close()
