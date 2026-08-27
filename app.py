@@ -1,19 +1,12 @@
 import streamlit as st
 import os
-import base64
 from PIL import Image
 
 logo_path = "logo.png"
-
-# 1. Load Custom App Icon for Streamlit
 if os.path.exists(logo_path):
     page_icon = Image.open(logo_path)
-    with open(logo_path, "rb") as img_f:
-        b64_logo = base64.b64encode(img_f.read()).decode("utf-8")
-        icon_data_uri = f"data:image/png;base64,{b64_logo}"
 else:
     page_icon = "📦"
-    icon_data_uri = ""
 
 st.set_page_config(
     page_title="SHELF MIND",
@@ -22,37 +15,26 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Force Mobile Browser Home Screen Metadata (Icon + App Name)
-pwa_header_html = f"""
-    <script>
-        document.title = "SHELF MIND";
-        
-        // Dynamically inject apple-touch-icon and shortcut icons into mobile browser head
-        function setAppMeta() {{
-            var iconUri = "{icon_data_uri}";
-            if (iconUri) {{
-                // Home screen icon for iOS / Android
-                var linkApple = document.createElement('link');
-                linkApple.rel = 'apple-touch-icon';
-                linkApple.href = iconUri;
-                document.getElementsByTagName('head')[0].appendChild(linkApple);
+# Display Custom Logo & Title on the In-App Screen
+col_logo, col_heading = st.columns([1, 4])
+with col_logo:
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=70)
+    else:
+        st.markdown("### 📦")
+with col_heading:
+    st.markdown("## **SHELF MIND**")
+    st.caption("Shopkeeper Intelligence & Kirana Operations")
 
-                var linkFavicon = document.createElement('link');
-                linkFavicon.rel = 'shortcut icon';
-                linkFavicon.type = 'image/png';
-                linkFavicon.href = iconUri;
-                document.getElementsByTagName('head')[0].appendChild(linkFavicon);
-            }}
-        }}
-        setAppMeta();
-    </script>
+# Inject PWA Manifest for Mobile Shortcut Icon
+st.markdown("""
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
     <meta name="apple-mobile-web-app-title" content="SHELF MIND">
     <meta name="application-name" content="SHELF MIND">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-"""
-st.markdown(pwa_header_html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # Rest of your imports and code...
 import pandas as pd
