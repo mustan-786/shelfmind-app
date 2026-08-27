@@ -15,7 +15,7 @@ import sms_service
 db.init_db()
 
 # Mobile App Icon
-logo_path = "logo.png"
+logo_path = "C:\Users\admin\Downloads\logo.png"
 app_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
 
 st.set_page_config(
