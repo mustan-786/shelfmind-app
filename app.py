@@ -12,49 +12,43 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom High-End Kirana CSS Theme
+# Adaptive Light/Dark Theme CSS using Streamlit Native Design Tokens
 st.markdown("""
 <style>
-    /* Dark Slate & Emerald Theme */
-    .stApp {
-        background-color: #0F172A;
-        color: #F8FAFC;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    
-    /* Header Branding */
+    /* Clean, Theme-Aware Header Branding */
     .shelf-header {
-        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-        border: 1px solid #334155;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.25);
         border-radius: 14px;
-        padding: 18px 20px;
-        margin-bottom: 20px;
+        padding: 16px 18px;
+        margin-bottom: 18px;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
     .shelf-title {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 800;
         letter-spacing: -0.5px;
-        color: #38BDF8;
+        color: #0284C7;
         margin: 0;
     }
     .shelf-sub {
-        font-size: 12px;
-        color: #94A3B8;
-        margin-top: 2px;
+        font-size: 13px;
+        opacity: 0.85;
+        margin-top: 3px;
     }
     .shop-badge {
         background: #0284C7;
-        color: white;
+        color: #FFFFFF !important;
         padding: 6px 12px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
+        white-space: nowrap;
     }
     
-    /* KPI Metric Cards Grid */
+    /* Responsive KPI Metric Cards Grid */
     .kpi-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -62,44 +56,36 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .kpi-card {
-        background: #1E293B;
-        border: 1px solid #334155;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
         border-radius: 12px;
         padding: 14px 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
     .kpi-title {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #94A3B8;
+        opacity: 0.75;
     }
     .kpi-value {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 800;
         margin-top: 4px;
-        color: #F8FAFC;
     }
-    .kpi-green { color: #34D399; }
-    .kpi-blue { color: #38BDF8; }
-    .kpi-amber { color: #FBBF24; }
-    .kpi-rose { color: #FB7185; }
     
-    /* Quick Action Buttons */
-    .quick-actions-bar {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 22px;
-    }
+    /* High-Contrast Colors for both Light & Dark modes */
+    .kpi-blue { color: #0284C7; }
+    .kpi-green { color: #059669; }
+    .kpi-amber { color: #D97706; }
+    .kpi-rose { color: #E11D48; }
     
     /* Udhar Cards */
     .udhar-card {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-left: 4px solid #F43F5E;
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        border-left: 4px solid #E11D48;
         border-radius: 10px;
         padding: 14px 16px;
         margin-bottom: 12px;
@@ -107,26 +93,24 @@ st.markdown("""
     .udhar-name {
         font-size: 16px;
         font-weight: 700;
-        color: #F8FAFC;
     }
     .udhar-amount {
         font-size: 18px;
         font-weight: 800;
-        color: #FB7185;
+        color: #E11D48;
     }
     
-    /* Tab Navigation Polish */
+    /* Tab Navigation Layout */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        background-color: #1E293B;
+        background-color: var(--secondary-background-color);
         padding: 6px;
         border-radius: 10px;
-        border: 1px solid #334155;
+        border: 1px solid rgba(128, 128, 128, 0.2);
     }
     .stTabs [data-baseweb="tab"] {
         height: 38px;
         border-radius: 8px;
-        color: #94A3B8;
         font-weight: 600;
         font-size: 13px;
         padding: 0 12px;
@@ -150,7 +134,7 @@ import sms_service
 
 db.init_db()
 
-# Persistent Session from URL
+# Persistent Session from URL Parameter
 query_params = st.query_params
 phone_in_url = query_params.get("phone", None)
 
@@ -238,20 +222,21 @@ if not st.session_state.get("logged_in_store"):
 store = st.session_state["logged_in_store"]
 store_phone = store["phone_number"]
 shop_name = store["shop_name"]
+owner_name = store["owner_name"]
 shop_upi = store["upi_id"]
 
-# 1. Professional Branded Top Header
+# 1. Branded Top Header
 st.markdown(f"""
     <div class="shelf-header">
         <div>
             <h1 class="shelf-title">🏪 {shop_name}</h1>
-            <div class="shelf-sub">{t['welcome_back']}, <b>{store['owner_name']}</b> · 📞 +91 {store_phone}</div>
+            <div class="shelf-sub">{t['welcome_back']}, <b>{owner_name}</b> · 📞 +91 {store_phone}</div>
         </div>
         <div class="shop-badge">UPI: {shop_upi}</div>
     </div>
 """, unsafe_allow_html=True)
 
-# 2. Four Clean KPI Cards
+# 2. Four KPI Cards
 skus, capital, dead = db.get_kpi_metrics(store_phone)
 total_udhar = db.get_total_udhar_pending(store_phone)
 
@@ -259,7 +244,7 @@ st.markdown(f"""
     <div class="kpi-container">
         <div class="kpi-card">
             <div class="kpi-title">{t['kpi_skus']}</div>
-            <div class="kpi-value kpi-blue">{skus} <span style="font-size:12px; font-weight:normal; color:#94A3B8;">Items</span></div>
+            <div class="kpi-value kpi-blue">{skus} <span style="font-size:12px; font-weight:normal; opacity:0.75;">Items</span></div>
         </div>
         <div class="kpi-card">
             <div class="kpi-title">{t['kpi_capital']}</div>
@@ -392,8 +377,8 @@ with tab_udhar:
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <div class="udhar-name">👤 {row['customer_name']}</div>
-                            <div style="font-size:12px; color:#94A3B8; margin-top:2px;">📞 +91 {row['customer_phone']} · 📅 Due: <b>{row['due_date']}</b></div>
-                            <div style="font-size:13px; color:#CBD5E1; margin-top:6px;">📦 {row['items_note'] or 'Grocery Items'}</div>
+                            <div style="font-size:12px; opacity:0.8; margin-top:2px;">📞 +91 {row['customer_phone']} · 📅 Due: <b>{row['due_date']}</b></div>
+                            <div style="font-size:13px; opacity:0.9; margin-top:6px;">📦 {row['items_note'] or 'Grocery Items'}</div>
                         </div>
                         <div class="udhar-amount">₹{row['amount']:,.2f}</div>
                     </div>
@@ -402,7 +387,6 @@ with tab_udhar:
             
             col_qr, col_wa, col_settle = st.columns([1, 1.2, 1])
             
-            # Standard NPCI UPI URI
             upi_payload = f"upi://pay?pa={shop_upi}&pn={urllib.parse.quote(shop_name)}&am={row['amount']}&cu=INR&tn=Udhar_{row['id']}"
             
             with col_qr:
@@ -440,16 +424,28 @@ with tab_radar:
     st.info("🌧️ **Regional Weather Radar:** Live monsoon & weather sensors linked. Monsoon-driven items (Tea, Biscuits, Spices) prioritized.")
     st.warning("⚠️ **Dead-Stock Estimator:** Bayesian velocity monitoring active. Items inactive for >30 days will trigger discount liquidation suggestions.")
 
-# Sidebar Settings & Store Logout
+# -------------------------------------------------------------
+# ⚙️ SIDEBAR: FULL PROFILE EDITING & LOGOUT
+# -------------------------------------------------------------
 with st.sidebar:
-    st.markdown(f"### ⚙️ Store Settings")
-    st.caption(f"Connected: `{shop_name}`")
-    new_upi = st.text_input("Update UPI ID", value=shop_upi)
-    if st.button("Save New UPI"):
-        db.update_shopkeeper_upi(store_phone, new_upi)
-        st.session_state["logged_in_store"]["upi_id"] = new_upi
-        st.toast("UPI updated successfully!")
-        st.rerun()
+    st.markdown("### ⚙️ Store Profile Settings")
+    
+    with st.form("edit_profile_form"):
+        st.caption("Update Store Details:")
+        edit_sname = st.text_input("Store Name", value=shop_name)
+        edit_oname = st.text_input("Owner Name", value=owner_name)
+        edit_upi = st.text_input("Store UPI ID", value=shop_upi)
+        
+        if st.form_submit_button("💾 Save Profile Changes", use_container_width=True, type="primary"):
+            if edit_sname and edit_oname and edit_upi:
+                db.update_shopkeeper_profile(store_phone, edit_sname, edit_oname, edit_upi)
+                st.session_state["logged_in_store"]["shop_name"] = edit_sname
+                st.session_state["logged_in_store"]["owner_name"] = edit_oname
+                st.session_state["logged_in_store"]["upi_id"] = edit_upi
+                st.toast("Profile updated successfully!")
+                st.rerun()
+            else:
+                st.error("Fields cannot be empty.")
         
     st.divider()
     if st.button("🚪 Logout Store Account", use_container_width=True):
