@@ -82,11 +82,15 @@ def get_shopkeeper(phone_number):
         return {"shop_name": row[0], "owner_name": row[1], "phone_number": row[2], "upi_id": row[3]}
     return None
 
-def update_shopkeeper_upi(phone_number, new_upi_id):
+def update_shopkeeper_profile(phone_number, new_shop_name, new_owner_name, new_upi_id):
     conn = get_connection()
     cursor = conn.cursor()
     clean_phone = phone_number.replace("+91", "").replace(" ", "").strip()
-    cursor.execute("UPDATE shopkeepers SET upi_id = ? WHERE phone_number = ?", (new_upi_id.strip(), clean_phone))
+    cursor.execute("""
+        UPDATE shopkeepers 
+        SET shop_name = ?, owner_name = ?, upi_id = ? 
+        WHERE phone_number = ?
+    """, (new_shop_name.strip(), new_owner_name.strip(), new_upi_id.strip(), clean_phone))
     conn.commit()
     conn.close()
 
