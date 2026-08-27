@@ -1,10 +1,5 @@
 import streamlit as st
 import os
-import pandas as pd
-import urllib.parse
-import qrcode
-import io
-from datetime import date
 from PIL import Image
 
 logo_path = "logo.png"
@@ -17,23 +12,16 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# FIXED VIEWPORT BOTTOM BAR CSS (Targeting specific Streamlit container)
+# Adaptive Light/Dark Theme CSS using Streamlit Native Design Tokens
 st.markdown("""
 <style>
-    /* Viewport padding so content never gets hidden behind the floating bar */
-    .main .block-container {
-        padding-bottom: 120px !important;
-        padding-top: 1.2rem !important;
-        max-width: 600px !important;
-    }
-    
-    /* Header Branding */
+    /* Clean, Theme-Aware Header Branding */
     .shelf-header {
         background-color: var(--secondary-background-color);
-        border: 1px solid rgba(128, 128, 128, 0.2);
+        border: 1px solid rgba(128, 128, 128, 0.25);
         border-radius: 14px;
-        padding: 14px 16px;
-        margin-bottom: 16px;
+        padding: 16px 18px;
+        margin-bottom: 18px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -41,106 +29,114 @@ st.markdown("""
     .shelf-title {
         font-size: 20px;
         font-weight: 800;
+        letter-spacing: -0.5px;
         color: #0284C7;
         margin: 0;
     }
     .shelf-sub {
-        font-size: 12px;
+        font-size: 13px;
         opacity: 0.85;
-        margin-top: 2px;
+        margin-top: 3px;
     }
     .shop-badge {
         background: #0284C7;
         color: #FFFFFF !important;
-        padding: 5px 10px;
-        border-radius: 16px;
-        font-size: 11px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
         font-weight: 600;
+        white-space: nowrap;
     }
-
-    /* KPI Metric Cards Grid */
+    
+    /* Responsive KPI Metric Cards Grid */
     .kpi-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 18px;
+        gap: 12px;
+        margin-bottom: 20px;
     }
     .kpi-card {
         background-color: var(--secondary-background-color);
         border: 1px solid rgba(128, 128, 128, 0.2);
         border-radius: 12px;
-        padding: 12px 14px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
     .kpi-title {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         opacity: 0.75;
     }
     .kpi-value {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 800;
-        margin-top: 3px;
+        margin-top: 4px;
     }
+    
+    /* High-Contrast Colors for both Light & Dark modes */
     .kpi-blue { color: #0284C7; }
     .kpi-green { color: #059669; }
     .kpi-amber { color: #D97706; }
     .kpi-rose { color: #E11D48; }
-
+    
     /* Udhar Cards */
     .udhar-card {
         background-color: var(--secondary-background-color);
         border: 1px solid rgba(128, 128, 128, 0.2);
         border-left: 4px solid #E11D48;
         border-radius: 10px;
-        padding: 12px 14px;
-        margin-bottom: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
     }
-    .udhar-name { font-size: 15px; font-weight: 700; }
-    .udhar-amount { font-size: 17px; font-weight: 800; color: #E11D48; }
-
-    /* --- VIEWPORT FIXED BOTTOM NAVIGATION DOCK --- */
-    div[data-testid="stBottom"] > div {
-        background-color: var(--secondary-background-color) !important;
-        border-top: 1px solid rgba(128, 128, 128, 0.25) !important;
-        padding: 10px 14px 18px 14px !important;
-        box-shadow: 0 -4px 16px rgba(0,0,0,0.18) !important;
+    .udhar-name {
+        font-size: 16px;
+        font-weight: 700;
     }
-
-    div[data-testid="stBottom"] [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        gap: 8px !important;
-        max-width: 500px !important;
-        margin: 0 auto !important;
+    .udhar-amount {
+        font-size: 18px;
+        font-weight: 800;
+        color: #E11D48;
     }
-
-    /* Center Elevated SCAN Button */
-    div[data-testid="stBottom"] [data-testid="column"]:nth-of-type(2) button {
-        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
-        color: #FFFFFF !important;
-        border: 3px solid var(--secondary-background-color) !important;
-        border-radius: 50px !important;
-        height: 52px !important;
-        font-weight: 800 !important;
-        font-size: 13px !important;
-        transform: translateY(-14px) !important;
-        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
+    
+    /* Tab Navigation Layout - Minimal Red Underline Indicator */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 16px;
+        background-color: transparent !important;
+        padding: 4px 0px;
+        border-radius: 0px;
+        border: none !important;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.2) !important;
     }
-
-    /* Standard Tabs */
-    div[data-testid="stBottom"] [data-testid="column"]:not(:nth-of-type(2)) button {
-        border-radius: 10px !important;
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        padding: 6px 2px !important;
-        border: 1px solid rgba(128,128,128,0.15) !important;
+    .stTabs [data-baseweb="tab"] {
+        height: 42px;
+        background-color: transparent !important;
+        border: none !important;
+        border-radius: 0px !important;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 0 4px;
+        color: var(--text-color) !important;
+        opacity: 0.65;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: transparent !important;
+        color: var(--text-color) !important;
+        opacity: 1.0 !important;
+        border-bottom: 3px solid #E11D48 !important; /* Clean Red Underline Indicator */
+    }
+    .stTabs [data-baseweb="tab-highlight"] {
+        background-color: #E11D48 !important; /* Overrides Streamlit default blue highlight line */
     }
 </style>
 """, unsafe_allow_html=True)
 
+import pandas as pd
+import urllib.parse
+import qrcode
+import io
+from datetime import date
 from translations import TRANSLATIONS
 from ocr_pipeline import extract_invoice_data_with_ai
 import database as db
@@ -148,7 +144,7 @@ import sms_service
 
 db.init_db()
 
-# Persistent Session from URL
+# Persistent Session from URL Parameter
 query_params = st.query_params
 phone_in_url = query_params.get("phone", None)
 
@@ -157,10 +153,6 @@ if "logged_in_store" not in st.session_state or st.session_state["logged_in_stor
         cached_store = db.get_shopkeeper(phone_in_url)
         if cached_store:
             st.session_state["logged_in_store"] = cached_store
-
-# Current Screen State (Default to Scan View)
-if "active_tab" not in st.session_state:
-    st.session_state["active_tab"] = "scan"
 
 # Language Selector
 lang_col1, lang_col2 = st.columns([2, 1])
@@ -179,7 +171,7 @@ if not st.session_state.get("logged_in_store"):
                 <h1 class="shelf-title">📦 {t['app_title']}</h1>
                 <div class="shelf-sub">{t['app_tagline']}</div>
             </div>
-            <div class="shop-badge">Kirana OS</div>
+            <div class="shop-badge">Kirana v2.5</div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -235,7 +227,7 @@ if not st.session_state.get("logged_in_store"):
     st.stop()
 
 # -------------------------------------------------------------
-# 🎯 ACTIVE STORE DASHBOARD
+# 🎯 ACTIVE SHOPKEEPER DASHBOARD
 # -------------------------------------------------------------
 store = st.session_state["logged_in_store"]
 store_phone = store["phone_number"]
@@ -243,7 +235,7 @@ shop_name = store["shop_name"]
 owner_name = store["owner_name"]
 shop_upi = store["upi_id"]
 
-# 1. Branded Header
+# 1. Branded Top Header
 st.markdown(f"""
     <div class="shelf-header">
         <div>
@@ -279,14 +271,14 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# 📱 ACTIVE SCREEN VIEW ROUTING
-# -------------------------------------------------------------
-current_view = st.session_state["active_tab"]
+# 3. Streamlined Tab Navigation
+tab_scan, tab_inv, tab_udhar, tab_radar = st.tabs([
+    t["tab_scan"], t["tab_inventory"], t["tab_udhar"], t["tab_demand"]
+])
 
-# === SCREEN 1: SCAN BILL ===
-if current_view == "scan":
-    st.markdown(f"### 📷 {t['upload_heading']}")
+# --- TAB 1: Vision Bill Scan & Editable Grid ---
+with tab_scan:
+    st.markdown(f"#### {t['upload_heading']}")
     st.caption(t["upload_sub"])
     
     input_mode = st.radio("Source:", ["📸 Phone Camera", "📁 Gallery File"], horizontal=True, label_visibility="collapsed")
@@ -297,7 +289,7 @@ if current_view == "scan":
         file_id = getattr(bill_img, "name", "cam_snap")
         
         if "parsed_items" not in st.session_state or st.session_state.get("last_bill_id") != file_id:
-            with st.spinner("⚡ Vision AI is analyzing invoice line items..."):
+            with st.spinner("⚡ Vision AI is analyzing invoice columns and items..."):
                 extracted = extract_invoice_data_with_ai(bill_img.getvalue(), mime_type=file_type)
                 clean = [
                     {
@@ -331,13 +323,10 @@ if current_view == "scan":
                 st.balloons()
                 st.toast(t["stock_updated_toast"])
                 st.session_state["parsed_items"] = None
-                st.session_state["active_tab"] = "inventory"
                 st.rerun()
 
-# === SCREEN 2: INVENTORY ===
-elif current_view == "inventory":
-    st.markdown("### 📦 Store Inventory")
-    
+# --- TAB 2: Clean Inventory Table + Manual Add ---
+with tab_inv:
     with st.expander(f"➕ {t['manual_add_heading']}"):
         with st.form("manual_stock_form"):
             col_m1, col_m2 = st.columns([2, 1])
@@ -370,10 +359,8 @@ elif current_view == "inventory":
     else:
         st.info(t["no_stock"])
 
-# === SCREEN 3: UDHARI LEDGER ===
-elif current_view == "udhar":
-    st.markdown("### 📒 Udhar (Credit) Ledger")
-    
+# --- TAB 3: Udhar Ledger & Payment Prompts ---
+with tab_udhar:
     with st.expander(f"➕ {t['act_add_udhar']}"):
         with st.form("new_udhar_form"):
             u_name = st.text_input(t["customer_name"], placeholder="e.g. Ramesh Kulkarni")
@@ -441,48 +428,25 @@ elif current_view == "udhar":
     else:
         st.info(t["no_udhar"])
 
-# === SCREEN 4: DEMAND RADAR ===
-elif current_view == "radar":
-    st.markdown("### ⚡ Demand Sensing Radar")
-    st.info("🌧️ **Regional Weather Radar:** Live monsoon & temperature sensors linked. High demand predicted for Tea, Spices, and Instant Snacks.")
+# --- TAB 4: Demand Radar & Stock Alerts ---
+with tab_radar:
+    st.markdown("#### ⚡ Demand Sensing & Weather Radar")
+    st.info("🌧️ **Regional Weather Radar:** Live monsoon & weather sensors linked. Monsoon-driven items (Tea, Biscuits, Spices) prioritized.")
     st.warning("⚠️ **Dead-Stock Estimator:** Bayesian velocity monitoring active. Items inactive for >30 days will trigger discount liquidation suggestions.")
 
 # -------------------------------------------------------------
-# 💳 NATIVE FIXED VIEWPORT BOTTOM BAR (Using st.bottom)
-# -------------------------------------------------------------
-with st.bottom():
-    nav_col1, nav_col2, nav_col3, nav_col4 = st.columns([1, 1.4, 1, 1])
-
-    with nav_col1:
-        if st.button("📦 Stock", key="btn_nav_stock", use_container_width=True, type="primary" if current_view == "inventory" else "secondary"):
-            st.session_state["active_tab"] = "inventory"
-            st.rerun()
-
-    with nav_col2:
-        if st.button("📷 SCAN", key="btn_nav_scan", use_container_width=True, type="primary"):
-            st.session_state["active_tab"] = "scan"
-            st.rerun()
-
-    with nav_col3:
-        if st.button("📒 Udhar", key="btn_nav_udhar", use_container_width=True, type="primary" if current_view == "udhar" else "secondary"):
-            st.session_state["active_tab"] = "udhar"
-            st.rerun()
-
-    with nav_col4:
-        if st.button("⚡ Radar", key="btn_nav_radar", use_container_width=True, type="primary" if current_view == "radar" else "secondary"):
-            st.session_state["active_tab"] = "radar"
-            st.rerun()
-
-# -------------------------------------------------------------
-# ⚙️ SIDEBAR: PROFILE SETTINGS & LOGOUT
+# ⚙️ SIDEBAR: FULL PROFILE EDITING & LOGOUT
 # -------------------------------------------------------------
 with st.sidebar:
     st.markdown("### ⚙️ Store Profile Settings")
+    
     with st.form("edit_profile_form"):
+        st.caption("Update Store Details:")
         edit_sname = st.text_input("Store Name", value=shop_name)
         edit_oname = st.text_input("Owner Name", value=owner_name)
         edit_upi = st.text_input("Store UPI ID", value=shop_upi)
-        if st.form_submit_button("💾 Save Changes", use_container_width=True, type="primary"):
+        
+        if st.form_submit_button("💾 Save Profile Changes", use_container_width=True, type="primary"):
             if edit_sname and edit_oname and edit_upi:
                 db.update_shopkeeper_profile(store_phone, edit_sname, edit_oname, edit_upi)
                 st.session_state["logged_in_store"]["shop_name"] = edit_sname
@@ -492,6 +456,7 @@ with st.sidebar:
                 st.rerun()
             else:
                 st.error("Fields cannot be empty.")
+        
     st.divider()
     if st.button("🚪 Logout Store Account", use_container_width=True):
         st.session_state["logged_in_store"] = None
