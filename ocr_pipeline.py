@@ -1,12 +1,13 @@
 import json
 import os
 import time
+import io
 import streamlit as st
+from PIL import Image
 from google import genai
 from google.genai import types
 
 def get_gemini_client():
-    """Retrieves API key securely from Streamlit Secrets or Environment Variables."""
     api_key = ""
     if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
         api_key = st.secrets["GEMINI_API_KEY"]
@@ -14,30 +15,45 @@ def get_gemini_client():
         api_key = os.environ.get("GEMINI_API_KEY", "")
     
     if not api_key:
-        st.error("⚠️ GEMINI_API_KEY not found. Please configure it in Streamlit Cloud Secrets.")
+        st.error("⚠️ GEMINI_API_KEY not found in Streamlit Secrets.")
         return None
     return genai.Client(api_key=api_key)
 
+def optimize_image(image_bytes):
+    """Resizes large camera photos to speed up inference and avoid 503 timeouts."""
+    img = Image.open(io.BytesIO(image_bytes))
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+    
+    # Cap maximum dimension to 1600px for sharp OCR without heavy payload
+    img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
+    
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return buf.getvalue()
+
 def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
-    """
-    Parses Kirana wholesale bills with automated fallback 
-    across 3.8 Flash, 3.5 Flash-Lite, and 3.1 Pro to prevent 503 errors.
-    """
     client = get_gemini_client()
     if client is None:
         return []
+
+    # Compress heavy mobile camera images (2.6MB -> ~300KB)
+    try:
+        ready_bytes = optimize_image(image_bytes)
+    except Exception:
+        ready_bytes = image_bytes
 
     prompt = """
     You are an expert document parser for Indian Kirana grocery store wholesale bills.
     Analyze this invoice image and extract all purchased line items accurately.
     
-    Even if the text is faint, dot-matrix, handwritten, or on colored/pink paper:
-    1. Extract the Item Name (clean standard product name with brand and size/weight if visible).
-    2. Extract the Quantity (integer).
-    3. Extract the Unit Wholesale Rate in INR (float).
-    4. Extract the Total Amount in INR (float).
+    Extract:
+    1. Item Name (standardized product SKU name).
+    2. Quantity (integer).
+    3. Rate (₹) (float unit wholesale rate in INR).
+    4. Total (₹) (float total line amount).
     
-    Return ONLY a valid JSON array of objects with these exact keys:
+    Return ONLY a valid JSON array of objects:
     [
       {
         "Item Name": "Product Name",
@@ -46,13 +62,15 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
         "Total (₹)": 450.0
       }
     ]
-    Do not wrap the response in markdown formatting or explanation. Return only the raw JSON.
+    Do not wrap in extra explanations. Return pure JSON.
     """
     
+    # Active, stable production models
     candidate_models = [
-        'gemini-3.8-flash',
-        'gemini-3.5-flash-lite',
-        'gemini-3.1-pro'
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro'
     ]
     
     last_error = ""
@@ -63,8 +81,8 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
                     model=model_name,
                     contents=[
                         types.Part.from_bytes(
-                            data=image_bytes,
-                            mime_type=mime_type,
+                            data=ready_bytes,
+                            mime_type="image/jpeg",
                         ),
                         prompt
                     ]
@@ -72,7 +90,6 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
                 
                 raw_output = response.text.strip()
                 
-                # Clean any markdown code blocks
                 if "```json" in raw_output:
                     raw_output = raw_output.split("```json")[1].split("```")[0]
                 elif "```" in raw_output:
@@ -84,12 +101,9 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
             except Exception as e:
                 err_str = str(e)
                 last_error = err_str
-                # If a 503 capacity surge occurs, pause briefly and allow failover
                 if "503" in err_str or "UNAVAILABLE" in err_str:
-                    time.sleep(1.0)
+                    time.sleep(1.5)
                     continue
-                elif "404" in err_str:
-                    break
                 else:
                     break
 
