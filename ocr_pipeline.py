@@ -20,13 +20,12 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 def optimize_image(image_bytes):
-    """Resizes and compresses heavy mobile bill photos to prevent upload timeouts."""
+    """Compresses large photos to speed up inference and avoid network timeouts."""
     img = Image.open(io.BytesIO(image_bytes))
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
     
-    # Resize max bound to 1500px for sharp text extraction with minimal bandwidth
-    img.thumbnail((1500, 1500), Image.Resampling.LANCZOS)
+    img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
     
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=82)
@@ -61,18 +60,19 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
         "Total (₹)": 450.0
       }
     ]
-    Do not wrap the response in markdown fences or explanation. Return only raw JSON.
+    Do not include markdown code block formatting or notes. Return raw JSON only.
     """
     
-    # Active, stable multimodal models
+    # Use the active models recommended by the API
     candidate_models = [
-        'gemini-2.5-flash',
-        'gemini-2.0-flash'
+        'gemini-3.6-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-pro'
     ]
     
     last_error = ""
     for model_name in candidate_models:
-        for attempt in range(2):
+        for attempt in range(3):
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -98,10 +98,13 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
             except Exception as e:
                 err_str = str(e)
                 last_error = err_str
-                # If overloaded, pause and retry
+                # If 503 capacity surge occurs, wait with exponential backoff and retry
                 if "503" in err_str or "UNAVAILABLE" in err_str:
-                    time.sleep(1.5)
+                    time.sleep(1.5 * (attempt + 1))
                     continue
+                # If model is deprecated or not found (404), move to next candidate immediately
+                elif "404" in err_str or "NOT_FOUND" in err_str:
+                    break
                 else:
                     break
 
