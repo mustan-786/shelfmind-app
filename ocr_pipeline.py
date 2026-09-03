@@ -20,16 +20,16 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 def optimize_image(image_bytes):
-    """Resizes large camera photos to speed up inference and avoid 503 timeouts."""
+    """Resizes and compresses heavy mobile bill photos to prevent upload timeouts."""
     img = Image.open(io.BytesIO(image_bytes))
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
     
-    # Cap maximum dimension to 1600px for sharp OCR without heavy payload
-    img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
+    # Resize max bound to 1500px for sharp text extraction with minimal bandwidth
+    img.thumbnail((1500, 1500), Image.Resampling.LANCZOS)
     
     buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=85)
+    img.save(buf, format="JPEG", quality=82)
     return buf.getvalue()
 
 def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
@@ -37,7 +37,6 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
     if client is None:
         return []
 
-    # Compress heavy mobile camera images (2.6MB -> ~300KB)
     try:
         ready_bytes = optimize_image(image_bytes)
     except Exception:
@@ -62,15 +61,13 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
         "Total (₹)": 450.0
       }
     ]
-    Do not wrap in extra explanations. Return pure JSON.
+    Do not wrap the response in markdown fences or explanation. Return only raw JSON.
     """
     
-    # Active, stable production models
+    # Active, stable multimodal models
     candidate_models = [
         'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro'
+        'gemini-2.0-flash'
     ]
     
     last_error = ""
@@ -101,6 +98,7 @@ def extract_invoice_data_with_ai(image_bytes, mime_type="image/jpeg"):
             except Exception as e:
                 err_str = str(e)
                 last_error = err_str
+                # If overloaded, pause and retry
                 if "503" in err_str or "UNAVAILABLE" in err_str:
                     time.sleep(1.5)
                     continue
