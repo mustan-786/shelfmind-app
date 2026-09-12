@@ -36,6 +36,18 @@ TRANSLATIONS = {
         "send_whatsapp_btn": "📲 WhatsApp Reminder",
         "no_stock": "No inventory recorded yet. Scan a wholesale bill to begin!",
         "no_udhar": "No pending credit records. All customer accounts are settled!"
+        "radar_heading": "⚡ AI Demand Radar & Seasonality Forecast",
+        "radar_sub": "Real-time demand signals generated from regional weather, upcoming festivals, and stock turnover.",
+        "radar_no_items": "Please add items or scan an invoice in the Inventory tab to activate AI demand sensing.",
+        "radar_btn_run": "🔄 Run Demand Analysis",
+        "radar_analyzing": "Analyzing regional calendar, climate & inventory...",
+        "radar_surge_title": "HIGH DEMAND SURGES",
+        "radar_dead_title": "DEAD-STOCK RISKS",
+        "radar_signal_label": "Signal",
+        "radar_status_surge": "HIGH DEMAND",
+        "radar_status_stable": "STABLE",
+        "radar_status_dead": "DEAD STOCK",
+        "radar_items_suffix": "Items",
     },
     "mr": {
         "app_title": "शेल्फ माइंड",
@@ -74,6 +86,18 @@ TRANSLATIONS = {
         "send_whatsapp_btn": "📲 व्हॉट्सॲप मेसेज",
         "no_stock": "सध्या कोणताही साठा नोंदवलेला नाही. सुरुवात करण्यासाठी बिल स्कॅन करा!",
         "no_udhar": "सध्या कोणतीही उधारी बाकी नाही. सर्व खाती सुरक्षित आहेत!"
+        "radar_heading": "⚡ AI मागणी अंदाज व हंगामी रडार",
+        "radar_sub": "हवामान, आगामी सण-उत्सव आणि विक्रीच्या वेगावर आधारित थेट मागणीचे संकेत.",
+        "radar_no_items": "AI मागणी विश्लेषणासाठी कृपया इन्व्हेंटरी टॅबमध्ये वस्तू जोडा किंवा बिल स्कॅन करा.",
+        "radar_btn_run": "🔄 मागणी विश्लेषण सुरू करा",
+        "radar_analyzing": "प्रादेशिक दिनदर्शिका, हवामान व मालाचा साठा तपासत आहे...",
+        "radar_surge_title": "अधिक मागणी असणाऱ्या वस्तू",
+        "radar_dead_title": "थकलेला माल (डेड स्टॉक)",
+        "radar_signal_label": "कारण/संकेत",
+        "radar_status_surge": "मोठी मागणी",
+        "radar_status_stable": "स्थिर",
+        "radar_status_dead": "कमी खप",
+        "radar_items_suffix": "वस्तू",
     },
     "hi": {
         "app_title": "शेल्फ माइंड",
@@ -112,41 +136,6 @@ TRANSLATIONS = {
         "send_whatsapp_btn": "📲 व्हाट्सएप रिमाइंडर",
         "no_stock": "कोई स्टॉक दर्ज नहीं है। शुरू करने के लिए थोक बिल स्कैन करें!",
         "no_udhar": "कोई बकाया उधार नहीं है। सभी खाते चुकता हैं!"
-    }
-}
-TRANSLATIONS = {
-    "en": {
-        # ... your existing keys ...
-        "radar_heading": "⚡ AI Demand Radar & Seasonality Forecast",
-        "radar_sub": "Real-time demand signals generated from regional weather, upcoming festivals, and stock turnover.",
-        "radar_no_items": "Please add items or scan an invoice in the Inventory tab to activate AI demand sensing.",
-        "radar_btn_run": "🔄 Run Demand Analysis",
-        "radar_analyzing": "Analyzing regional calendar, climate & inventory...",
-        "radar_surge_title": "HIGH DEMAND SURGES",
-        "radar_dead_title": "DEAD-STOCK RISKS",
-        "radar_signal_label": "Signal",
-        "radar_status_surge": "HIGH DEMAND",
-        "radar_status_stable": "STABLE",
-        "radar_status_dead": "DEAD STOCK",
-        "radar_items_suffix": "Items",
-    },
-    "mr": {
-        # ... your existing keys ...
-        "radar_heading": "⚡ AI मागणी अंदाज व हंगामी रडार",
-        "radar_sub": "हवामान, आगामी सण-उत्सव आणि विक्रीच्या वेगावर आधारित थेट मागणीचे संकेत.",
-        "radar_no_items": "AI मागणी विश्लेषणासाठी कृपया इन्व्हेंटरी टॅबमध्ये वस्तू जोडा किंवा बिल स्कॅन करा.",
-        "radar_btn_run": "🔄 मागणी विश्लेषण सुरू करा",
-        "radar_analyzing": "प्रादेशिक दिनदर्शिका, हवामान व मालाचा साठा तपासत आहे...",
-        "radar_surge_title": "अधिक मागणी असणाऱ्या वस्तू",
-        "radar_dead_title": "थकलेला माल (डेड स्टॉक)",
-        "radar_signal_label": "कारण/संकेत",
-        "radar_status_surge": "मोठी मागणी",
-        "radar_status_stable": "स्थिर",
-        "radar_status_dead": "कमी खप",
-        "radar_items_suffix": "वस्तू",
-    },
-    "hi": {
-        # ... your existing keys ...
         "radar_heading": "⚡ AI मांग पूर्वानुमान व मौसमी रडार",
         "radar_sub": "मौसम, आने वाले त्योहारों और बिक्री की गति के आधार पर लाइव मांग संकेत।",
         "radar_no_items": "AI मांग विश्लेषण के लिए कृपया इन्वेंटरी में सामान जोड़ें या रसीद स्कैन करें।",
@@ -159,5 +148,6 @@ TRANSLATIONS = {
         "radar_status_stable": "सामान्य",
         "radar_status_dead": "धीमी बिक्री",
         "radar_items_suffix": "सामान",
-    },
+    }
 }
+
