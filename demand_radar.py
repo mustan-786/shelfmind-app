@@ -47,7 +47,7 @@ def analyze_inventory_demand(inventory_items: list, location: str = "Maharashtra
     try:
         client = get_gemini_client()
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
