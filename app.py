@@ -1,18 +1,19 @@
-import os
 import io
+import os
 import urllib.parse
 from datetime import date
 from PIL import Image
 import pandas as pd
 import qrcode
 import streamlit as st
-from demand_radar import analyze_inventory_demand
+
 import database as db
+from demand_radar import analyze_inventory_demand
 from ocr_pipeline import extract_invoice_data_with_ai
 import sms_service
 from translations import TRANSLATIONS
 
-# 1. PAGE CONFIG
+# 1. Page configuration
 logo_path = "logo.png"
 page_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
 
@@ -23,52 +24,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# 2. POLISHED KOTAK 811 THEME WITH HIGH-CONTRAST TEXT & SLIDING TAB
+# 2. Kotak 811 theme and styles
 st.markdown("""
 <style>
-/* Demand Radar Accent Tags */
-    .badge-surge {
-        background-color: #DC2626 !important;
-        color: #FFFFFF !important;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .badge-dead {
-        background-color: #D97706 !important;
-        color: #FFFFFF !important;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .badge-stable {
-        background-color: #059669 !important;
-        color: #FFFFFF !important;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    /* 1. Universal Theme Adaptation */
     .stApp {
         background-color: var(--background-color) !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* Force all plain text to adapt cleanly between light & dark */
     p, span, label, div[data-testid="stMarkdownContainer"] {
         color: var(--text-color);
     }
 
-    /* 2. Top Header */
     .kotak-header {
         background: linear-gradient(135deg, #ED1C24 0%, #991B1B 100%);
         border-radius: 16px;
@@ -101,8 +68,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* 3. KPI Grid with Distinct Black / Slate Accents */
-    /* KPI Cards - Identical to Udhar Card */
     .kpi-grid {
         display: flex;
         flex-direction: column;
@@ -144,7 +109,6 @@ st.markdown("""
         color: #ED1C24 !important;
     }
 
-    /* 4. Udhar Ledger Card */
     .kotak-udhar-card {
         background-color: var(--secondary-background-color) !important;
         border: 1px solid rgba(128, 128, 128, 0.22) !important;
@@ -172,7 +136,6 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* 5. Kotak Primary Buttons */
     div.stButton > button[kind="primary"], div.stButton > button:first-child {
         background-color: #ED1C24 !important;
         color: #FFFFFF !important;
@@ -185,12 +148,6 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 6. Continuous Smooth Red Sliding Tab Across All 4 Tabs */
-   /* ------------------------------------------------ */
-    /* 🎯 PERFECT 1:1 SLIDING RED INDICATOR & FULL TRACK */
-    /* ------------------------------------------------ */
-    
-    /* 1. Full-width baseline track that extends 100% across all tabs */
     .stTabs [data-baseweb="tab-list"] {
         position: relative !important;
         background-color: transparent !important;
@@ -199,8 +156,6 @@ st.markdown("""
         padding: 0 0 2px 0 !important;
         width: 100% !important;
     }
-    
-    /* Dedicated continuous gray baseline under all 4 tabs */
     .stTabs [data-baseweb="tab-list"]::after {
         content: "" !important;
         position: absolute !important;
@@ -211,8 +166,6 @@ st.markdown("""
         background-color: rgba(128, 128, 128, 0.25) !important;
         z-index: 1 !important;
     }
-
-    /* 2. Individual Tab Buttons - Clear borders so they don't clip calculations */
     .stTabs [data-baseweb="tab"] {
         background-color: transparent !important;
         border: none !important;
@@ -228,32 +181,63 @@ st.markdown("""
         transition: opacity 0.2s ease-in-out !important;
         z-index: 2 !important;
     }
-
     .stTabs [aria-selected="true"] {
         background-color: transparent !important;
         color: #ED1C24 !important;
         opacity: 1.0 !important;
         border: none !important;
     }
-
-    /* 3. Hardware-Accelerated Sliding Red Highlight Bar */
     .stTabs [data-baseweb="tab-highlight"] {
         background-color: #ED1C24 !important;
         height: 3px !important;
         bottom: 0px !important;
         border-radius: 3px 3px 0 0 !important;
-        z-index: 3 !important; /* Sits directly on top of the gray line */
+        z-index: 3 !important;
         transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-    
-    /* Clean tab borders across Streamlit versions */
     .stTabs [data-baseweb="tab-border"] {
         display: none !important;
     }
+
+    .badge-surge {
+        background-color: #DC2626 !important;
+        color: #FFFFFF !important;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .badge-dead {
+        background-color: #D97706 !important;
+        color: #FFFFFF !important;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .badge-stable {
+        background-color: #059669 !important;
+        color: #FFFFFF !important;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# 3. INITIALIZE DB & STATE
+# 3. Database initialization and session recovery
 db.init_db()
 
 query_params = st.query_params
@@ -265,16 +249,13 @@ if "logged_in_store" not in st.session_state or st.session_state["logged_in_stor
         if cached_store:
             st.session_state["logged_in_store"] = cached_store
 
-# Language Selector
 lang_col1, lang_col2 = st.columns([2, 1])
 with lang_col2:
     lang_choice = st.selectbox("Language / भाषा", ["English", "मराठी", "हिंदी"], label_visibility="collapsed")
 lang_key = "mr" if "मराठी" in lang_choice else "hi" if "हिंदी" in lang_choice else "en"
 t = TRANSLATIONS[lang_key]
 
-# -------------------------------------------------------------
-# 🔐 AUTHENTICATION PORTAL (If Logged Out)
-# -------------------------------------------------------------
+# 4. Authentication flow
 if not st.session_state.get("logged_in_store"):
     st.markdown(f"""
         <div class="kotak-header">
@@ -285,9 +266,9 @@ if not st.session_state.get("logged_in_store"):
             <div class="kotak-badge">Kirana v2.5</div>
         </div>
     """, unsafe_allow_html=True)
-    
+
     auth_choice = st.radio("Choose:", ["🔑 Login to Store", "📝 Register New Shop"], horizontal=True, label_visibility="collapsed")
-    
+
     if auth_choice == "🔑 Login to Store":
         with st.form("login_box"):
             st.markdown("##### 🔑 Shopkeeper Login")
@@ -305,12 +286,12 @@ if not st.session_state.get("logged_in_store"):
         if "reg_otp" not in st.session_state:
             st.session_state["reg_otp"] = None
             st.session_state["temp_reg"] = {}
-            
+
         r_shop = st.text_input("Store Name (दुकानाचे नाव)", placeholder="e.g. Patil Kirana Stores")
         r_owner = st.text_input("Owner Name (दुकानदाराचे नाव)", placeholder="e.g. Aniket Patil")
         r_phone = st.text_input("Mobile Number (मोबाईल नंबर)", placeholder="e.g. 9822012345")
         r_upi = st.text_input("Store UPI ID for receiving payments", placeholder="e.g. 9822012345@ybl")
-        
+
         if st.button("📲 Send 4-Digit Verification Code", use_container_width=True):
             if r_shop and r_owner and r_phone and r_upi:
                 otp = sms_service.generate_otp()
@@ -320,7 +301,7 @@ if not st.session_state.get("logged_in_store"):
                 st.success(f"✅ {msg}")
             else:
                 st.error("Please fill in all store details.")
-                
+
         if st.session_state.get("reg_otp"):
             with st.form("verify_box"):
                 code = st.text_input("Enter 4-Digit Code", max_chars=4, placeholder="****")
@@ -337,16 +318,13 @@ if not st.session_state.get("logged_in_store"):
                         st.error("Invalid verification code.")
     st.stop()
 
-# -------------------------------------------------------------
-# 🎯 ACTIVE SHOPKEEPER DASHBOARD
-# -------------------------------------------------------------
+# 5. Dashboard view
 store = st.session_state["logged_in_store"]
 store_phone = store["phone_number"]
 shop_name = store["shop_name"]
 owner_name = store["owner_name"]
 shop_upi = store["upi_id"]
 
-# 1. Kotak 811 Header Bar
 st.markdown(f"""
     <div class="kotak-header">
         <div>
@@ -357,7 +335,6 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# 2. KPI Summary Grid
 skus, capital, dead = db.get_kpi_metrics(store_phone)
 total_udhar = db.get_total_udhar_pending(store_phone)
 
@@ -394,23 +371,22 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# 3. Tab Navigation (Sliding Red Underline)
 tab_scan, tab_inv, tab_udhar, tab_radar = st.tabs([
     t["tab_scan"], t["tab_inventory"], t["tab_udhar"], t["tab_demand"]
 ])
 
-# --- TAB 1: Vision Bill Scan & Editable Grid ---
+# --- TAB 1: Vision OCR bill scan ---
 with tab_scan:
     st.markdown(f"#### {t['upload_heading']}")
     st.caption(t["upload_sub"])
-    
+
     input_mode = st.radio("Source:", ["📸 Phone Camera", "📁 Gallery File"], horizontal=True, label_visibility="collapsed")
     bill_img = st.camera_input("Take photo of wholesale receipt") if input_mode == "📸 Phone Camera" else st.file_uploader("Select Invoice Photo", type=["jpg", "png", "jpeg"])
-    
+
     if bill_img is not None:
         file_type = bill_img.type if hasattr(bill_img, "type") and bill_img.type else "image/jpeg"
         file_id = getattr(bill_img, "name", "cam_snap")
-        
+
         if "parsed_items" not in st.session_state or st.session_state.get("last_bill_id") != file_id:
             with st.spinner("⚡ Vision AI is analyzing invoice columns and items..."):
                 extracted = extract_invoice_data_with_ai(bill_img.getvalue(), mime_type=file_type)
@@ -424,12 +400,12 @@ with tab_scan:
                 ]
                 st.session_state["parsed_items"] = clean
                 st.session_state["last_bill_id"] = file_id
-        
+
         items = st.session_state.get("parsed_items", [])
         if items:
             st.success(f"✅ Extracted {len(items)} line items from receipt.")
             st.caption(t["edit_instruction"])
-            
+
             df_edit = st.data_editor(
                 pd.DataFrame(items),
                 num_rows="dynamic",
@@ -440,7 +416,7 @@ with tab_scan:
                     "Rate (₹)": st.column_config.NumberColumn("Unit Rate (₹)", min_value=0.0, step=1.0, format="₹%.2f", required=True)
                 }
             )
-            
+
             if st.button(f"✅ {t['save_stock_btn']}", use_container_width=True, type="primary"):
                 db.add_or_update_stock(store_phone, df_edit.to_dict(orient="records"))
                 st.balloons()
@@ -448,7 +424,7 @@ with tab_scan:
                 st.session_state["parsed_items"] = None
                 st.rerun()
 
-# --- TAB 2: Clean Inventory Table + Manual Add ---
+# --- TAB 2: Inventory view & manual entry ---
 with tab_inv:
     with st.expander(f"➕ {t['manual_add_heading']}"):
         with st.form("manual_stock_form"):
@@ -456,7 +432,7 @@ with tab_inv:
             m_name = col_m1.text_input("Product Name", placeholder="e.g. Parle-G 100g")
             m_qty = col_m2.number_input("Quantity", min_value=1, step=1, value=10)
             m_rate = st.number_input("Wholesale Rate (₹)", min_value=1.0, step=5.0, value=25.0)
-            
+
             if st.form_submit_button(t["add_item_btn"], use_container_width=True):
                 if m_name:
                     db.add_or_update_stock(store_phone, [{"Item Name": m_name, "Quantity": m_qty, "Rate (₹)": m_rate}])
@@ -464,10 +440,10 @@ with tab_inv:
                     st.rerun()
                 else:
                     st.error("Please enter a product name.")
-                    
+
     search_q = st.text_input(t["search_stock"], placeholder="Search...", label_visibility="collapsed")
     df_inv = db.get_inventory_dataframe(store_phone)
-    
+
     if not df_inv.empty:
         if search_q:
             df_inv = df_inv[df_inv["Item SKU"].str.contains(search_q, case=False, na=False)]
@@ -482,7 +458,7 @@ with tab_inv:
     else:
         st.info(t["no_stock"])
 
-# --- TAB 3: Udhar Ledger & Payment Prompts ---
+# --- TAB 3: Udhar ledger ---
 with tab_udhar:
     with st.expander(f"➕ {t['act_add_udhar']}"):
         with st.form("new_udhar_form"):
@@ -491,7 +467,7 @@ with tab_udhar:
             u_amount = st.number_input(t["udhar_amount"], min_value=1.0, step=10.0, value=150.0)
             u_note = st.text_input(t["items_note"], placeholder="e.g. 1L Gemini Oil, 1kg Sugar")
             u_due = st.date_input(t["due_date"], min_value=date.today())
-            
+
             if st.form_submit_button(t["save_udhar_btn"], use_container_width=True, type="primary"):
                 if u_name and u_phone:
                     db.add_udhar_entry(store_phone, u_name, u_phone, u_amount, u_note, u_due)
@@ -499,29 +475,28 @@ with tab_udhar:
                     st.rerun()
                 else:
                     st.error("Please provide both name and phone number.")
-                    
+
     df_u = db.get_udhar_records(store_phone)
     pending_records = df_u[df_u["status"] != "Paid"] if not df_u.empty else pd.DataFrame()
-    
+
     if not pending_records.empty:
         for _, row in pending_records.iterrows():
             st.markdown(f"""
-    <div class="kotak-udhar-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-                <div class="kotak-udhar-title">👤 {row['customer_name']}</div>
-                <div class="kotak-udhar-sub">📞 +91 {row['customer_phone']} · 📅 Due: <b>{row['due_date']}</b></div>
-                <div class="kotak-udhar-note">📦 {row['items_note'] or 'Grocery Items'}</div>
-            </div>
-            <div style="font-size:19px; font-weight:800; color:#ED1C24;">₹{row['amount']:,.2f}</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-            
+                <div class="kotak-udhar-card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div class="kotak-udhar-title">👤 {row['customer_name']}</div>
+                            <div class="kotak-udhar-sub">📞 +91 {row['customer_phone']} · 📅 Due: <b>{row['due_date']}</b></div>
+                            <div class="kotak-udhar-note">📦 {row['items_note'] or 'Grocery Items'}</div>
+                        </div>
+                        <div style="font-size:19px; font-weight:800; color:#ED1C24;">₹{row['amount']:,.2f}</div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
             col_qr, col_wa, col_settle = st.columns([1, 1.2, 1])
-            
             upi_payload = f"upi://pay?pa={shop_upi}&pn={urllib.parse.quote(shop_name)}&am={row['amount']}&cu=INR&tn=Udhar_{row['id']}"
-            
+
             with col_qr:
                 qr = qrcode.QRCode(box_size=4, border=1)
                 qr.add_data(upi_payload)
@@ -531,7 +506,7 @@ with tab_udhar:
                 img.save(buf, format="PNG")
                 with st.popover("📲 Scan QR"):
                     st.image(buf.getvalue(), caption=f"Pay ₹{row['amount']} to {shop_upi}")
-                    
+
             with col_wa:
                 if lang_key == "mr":
                     msg = f"नमस्कार {row['customer_name']}जी, {shop_name} दुकानाची ₹{row['amount']} उधारी बाकी आहे (वस्तू: {row['items_note']}). देय तारीख: {row['due_date']}. थेट UPI द्वारे पैसे भरण्यासाठी लिंक: {upi_payload}"
@@ -539,10 +514,10 @@ with tab_udhar:
                     msg = f"नमस्ते {row['customer_name']}जी, {shop_name} की ₹{row['amount']} उधारी बाकी है (सामान: {row['items_note']}). अंतिम तिथि: {row['due_date']}. भुगतान लिंक: {upi_payload}"
                 else:
                     msg = f"Dear {row['customer_name']}, reminder for pending store credit of ₹{row['amount']} at {shop_name}. Due Date: {row['due_date']}. Pay via UPI: {upi_payload}"
-                
+
                 wa_url = f"https://wa.me/91{row['customer_phone']}?text={urllib.parse.quote(msg)}"
                 st.link_button(t["send_whatsapp_btn"], wa_url, use_container_width=True)
-                
+
             with col_settle:
                 if st.button(t["mark_paid_btn"], key=f"settle_{row['id']}", use_container_width=True):
                     db.settle_udhar(row["id"])
@@ -550,7 +525,8 @@ with tab_udhar:
                     st.rerun()
     else:
         st.info(t["no_udhar"])
-# --- TAB 4: Demand Radar & Stock Alerts ---
+
+# --- TAB 4: Demand radar ---
 with tab_radar:
     st.markdown("#### ⚡ AI Demand Radar & Seasonality Forecast")
     st.caption("Real-time demand signals generated from regional weather, upcoming festivals, and stock turnover.")
@@ -636,9 +612,7 @@ with tab_radar:
         elif error_msg:
             st.error(f"⚠️ Error from Demand Engine: {error_msg}")
 
-# -------------------------------------------------------------
-# ⚙️ SIDEBAR: FULL PROFILE EDITING & LOGOUT
-# -------------------------------------------------------------
+# 6. Sidebar configuration
 with st.sidebar:
     st.markdown("### ⚙️ Store Profile Settings")
 
@@ -659,130 +633,6 @@ with st.sidebar:
             else:
                 st.error("Fields cannot be empty.")
 
-    st.divider()
-    if st.button("🚪 Logout Store Account", use_container_width=True):
-        st.session_state["logged_in_store"] = None
-        st.session_state["parsed_items"] = None
-        st.query_params.clear()
-        st.rerun()
-            st.markdown(f"""
-                <div style="display:flex; gap:12px; margin-bottom:16px;">
-                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #ED1C24; border-radius:10px; padding:10px 14px;">
-                        <span style="font-size:11px; font-weight:700; opacity:0.7;">HIGH DEMAND SURGES</span>
-                        <div style="font-size:20px; font-weight:800; color:#ED1C24;">{len(surges)} Items</div>
-                    </div>
-                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #D97706; border-radius:10px; padding:10px 14px;">
-                        <span style="font-size:11px; font-weight:700; opacity:0.7;">DEAD-STOCK RISKS</span>
-                        <div style="font-size:20px; font-weight:800; color:#D97706;">{len(dead_stocks)} Items</div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            for item in results:
-                status = item.get("status", "STABLE")
-                badge_class = (
-                    "badge-surge" if status == "SURGE"
-                    else "badge-dead" if status == "DEAD_STOCK"
-                    else "badge-stable"
-                )
-                border_color = (
-                    "#ED1C24" if status == "SURGE"
-                    else "#D97706" if status == "DEAD_STOCK"
-                    else "#059669"
-                )
-
-                st.markdown(f"""
-                    <div class="kotak-udhar-card" style="border-left-color: {border_color} !important;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                            <span style="font-size:16px; font-weight:700; color:var(--text-color);">{item.get('item_name', '')}</span>
-                            <span class="{badge_class}">{status.replace('_', ' ')}</span>
-                        </div>
-                        <div style="font-size:13px; color:var(--text-color); opacity:0.85; margin-bottom:4px;">
-                            <b>Signal:</b> {item.get('reason', '')}
-                        </div>
-                        <div style="font-size:13px; font-weight:600; color:{border_color};">
-                            💡 {item.get('action', '')}
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        elif error_msg:
-            st.error(f"⚠️ Error from Demand Engine: {error_msg}")
-        st.markdown(
-            f"""
-                <div style="display:flex; gap:12px; margin-bottom:16px;">
-                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #ED1C24; border-radius:10px; padding:10px 14px;">
-                        <span style="font-size:11px; font-weight:700; opacity:0.7;">HIGH DEMAND SURGES</span>
-                        <div style="font-size:20px; font-weight:800; color:#ED1C24;">{len(surges)} Items</div>
-                    </div>
-                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #D97706; border-radius:10px; padding:10px 14px;">
-                        <span style="font-size:11px; font-weight:700; opacity:0.7;">DEAD-STOCK RISKS</span>
-                        <div style="font-size:20px; font-weight:800; color:#D97706;">{len(dead_stocks)} Items</div>
-                    </div>
-                </div>
-                """,
-            unsafe_allow_html=True,
-        )
-
-        # 2. Render Cards
-        for item in results:
-          status = item.get("status", "STABLE")
-          badge_class = (
-              "badge-surge"
-              if status == "SURGE"
-              else "badge-dead"
-              if status == "DEAD_STOCK"
-              else "badge-stable"
-          )
-          border_color = (
-              "#ED1C24"
-              if status == "SURGE"
-              else "#D97706"
-              if status == "DEAD_STOCK"
-              else "#059669"
-          )
-
-          st.markdown(
-              f"""
-                    <div class="kotak-udhar-card" style="border-left-color: {border_color} !important;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                            <span style="font-size:16px; font-weight:700; color:var(--text-color);">{item['item_name']}</span>
-                            <span class="{badge_class}">{status.replace('_', ' ')}</span>
-                        </div>
-                        <div style="font-size:13px; color:var(--text-color); opacity:0.85; margin-bottom:4px;">
-                            <b>Signal:</b> {item['reason']}
-                        </div>
-                        <div style="font-size:13px; font-weight:600; color:{border_color};">
-                            💡 {item['action']}
-                        </div>
-                    </div>
-                    """,
-              unsafe_allow_html=True,
-          )
-      else:
-        st.warning("Could not complete demand sensing. Check your API key.")
-# -------------------------------------------------------------
-# ⚙️ SIDEBAR: FULL PROFILE EDITING & LOGOUT
-# -------------------------------------------------------------
-with st.sidebar:
-    st.markdown("### ⚙️ Store Profile Settings")
-    
-    with st.form("edit_profile_form"):
-        st.caption("Update Store Details:")
-        edit_sname = st.text_input("Store Name", value=shop_name)
-        edit_oname = st.text_input("Owner Name", value=owner_name)
-        edit_upi = st.text_input("Store UPI ID", value=shop_upi)
-        
-        if st.form_submit_button("💾 Save Profile Changes", use_container_width=True, type="primary"):
-            if edit_sname and edit_oname and edit_upi:
-                db.update_shopkeeper_profile(store_phone, edit_sname, edit_oname, edit_upi)
-                st.session_state["logged_in_store"]["shop_name"] = edit_sname
-                st.session_state["logged_in_store"]["owner_name"] = edit_oname
-                st.session_state["logged_in_store"]["upi_id"] = edit_upi
-                st.toast("Profile updated successfully!")
-                st.rerun()
-            else:
-                st.error("Fields cannot be empty.")
-        
     st.divider()
     if st.button("🚪 Logout Store Account", use_container_width=True):
         st.session_state["logged_in_store"] = None
