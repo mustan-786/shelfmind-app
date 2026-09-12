@@ -26,25 +26,19 @@ st.set_page_config(
 # 2. POLISHED KOTAK 811 THEME WITH HIGH-CONTRAST TEXT & SLIDING TAB
 st.markdown("""
 <style>
-    /* Global Base Colors & Typography */
+    /* 1. Theme-Adaptive Base Canvas */
     .stApp {
-        background-color: #F8FAFC !important;
+        background-color: var(--background-color) !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* Force high visibility on all text elements */
-    p, span, label, div[data-testid="stMarkdownContainer"] {
-        color: #1E293B;
-    }
-
-    /* Kotak Branded Header */
+    /* 2. Top Header Bar (Adapts gradient depth to match theme) */
     .kotak-header {
-        background: linear-gradient(135deg, #ED1C24 0%, #BA141A 100%);
+        background: linear-gradient(135deg, #ED1C24 0%, #991B1B 100%);
         border-radius: 16px;
         padding: 18px 20px;
         margin-bottom: 20px;
-        color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(237, 28, 36, 0.2);
+        box-shadow: 0 4px 14px rgba(237, 28, 36, 0.25);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -59,11 +53,11 @@ st.markdown("""
     }
     .kotak-header-sub {
         font-size: 13px;
-        opacity: 0.92;
+        opacity: 0.9;
         margin-top: 3px;
     }
     .kotak-badge {
-        background: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.4);
         padding: 6px 14px;
         border-radius: 20px;
@@ -71,7 +65,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* KPI Grid & Cards */
+    /* 3. Theme-Adaptive Elevated Surface Cards */
     .kpi-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -79,48 +73,63 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .kotak-kpi-card {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E2E8F0;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         border-radius: 14px;
         padding: 14px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-        border-top: 4px solid #0B2265;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-top: 4px solid #0284C7;
     }
     .kotak-kpi-card.accent-red {
-        border-top-color: #ED1C24 !important;
+        border-top: 4px solid #ED1C24 !important;
     }
     .kpi-meta-label {
         font-size: 11px;
         font-weight: 700;
-        color: #64748B !important;
+        color: var(--text-color) !important;
+        opacity: 0.7;
         text-transform: uppercase;
         letter-spacing: 0.6px;
     }
     .kpi-main-number {
         font-size: 22px;
         font-weight: 800;
-        color: #0B2265 !important;
+        color: var(--text-color) !important;
         margin-top: 4px;
     }
     .kpi-main-number.red {
         color: #ED1C24 !important;
     }
 
-    /* Udhar Card */
+    /* 4. Adaptive Udhar Cards */
     .kotak-udhar-card {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E2E8F0;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         border-left: 5px solid #ED1C24 !important;
         border-radius: 12px;
         padding: 14px 16px;
         margin-bottom: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
-    .kotak-udhar-card * {
-        color: #1E293B !important;
+    .kotak-udhar-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-color) !important;
+    }
+    .kotak-udhar-sub {
+        font-size: 12px;
+        color: var(--text-color) !important;
+        opacity: 0.75;
+        margin-top: 2px;
+    }
+    .kotak-udhar-note {
+        font-size: 13px;
+        color: var(--text-color) !important;
+        opacity: 0.9;
+        margin-top: 6px;
     }
 
-    /* Primary Buttons */
+    /* 5. Kotak Action Buttons */
     div.stButton > button[kind="primary"], div.stButton > button:first-child {
         background-color: #ED1C24 !important;
         color: #FFFFFF !important;
@@ -133,15 +142,12 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* ------------------------------------------------ */
-    /* 🎯 SMOOTH SLIDING RED TAB INDICATOR              */
-    /* ------------------------------------------------ */
+    /* 6. Sliding Red Tab Indicator */
     .stTabs [data-baseweb="tab-list"] {
         gap: 20px;
         background-color: transparent !important;
         padding-bottom: 2px;
-        border-bottom: 1px solid #CBD5E1 !important;
-        position: relative;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.25) !important;
     }
     .stTabs [data-baseweb="tab"] {
         height: 44px;
@@ -150,14 +156,13 @@ st.markdown("""
         font-weight: 600 !important;
         font-size: 14px !important;
         padding: 0 8px !important;
-        color: #64748B !important;
+        color: var(--text-color) !important;
+        opacity: 0.65;
     }
     .stTabs [aria-selected="true"] {
-        background-color: transparent !important;
         color: #ED1C24 !important;
-        border: none !important;
+        opacity: 1 !important;
     }
-    /* Native BaseWeb sliding track */
     .stTabs [data-baseweb="tab-highlight"] {
         background-color: #ED1C24 !important;
         height: 3px !important;
@@ -165,7 +170,7 @@ st.markdown("""
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    /* Re-enable top header so Theme Settings stays visible */
+    /* Keep settings header visible */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
     }
@@ -414,17 +419,17 @@ with tab_udhar:
     if not pending_records.empty:
         for _, row in pending_records.iterrows():
             st.markdown(f"""
-                <div class="kotak-udhar-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <div style="font-size:16px; font-weight:700; color:#0B2265;">👤 {row['customer_name']}</div>
-                            <div style="font-size:12px; color:#64748B; margin-top:2px;">📞 +91 {row['customer_phone']} · 📅 Due: <b>{row['due_date']}</b></div>
-                            <div style="font-size:13px; color:#334155; margin-top:6px;">📦 {row['items_note'] or 'Grocery Items'}</div>
-                        </div>
-                        <div style="font-size:19px; font-weight:800; color:#ED1C24;">₹{row['amount']:,.2f}</div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+    <div class="kotak-udhar-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <div class="kotak-udhar-title">👤 {row['customer_name']}</div>
+                <div class="kotak-udhar-sub">📞 +91 {row['customer_phone']} · 📅 Due: <b>{row['due_date']}</b></div>
+                <div class="kotak-udhar-note">📦 {row['items_note'] or 'Grocery Items'}</div>
+            </div>
+            <div style="font-size:19px; font-weight:800; color:#ED1C24;">₹{row['amount']:,.2f}</div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
             
             col_qr, col_wa, col_settle = st.columns([1, 1.2, 1])
             
