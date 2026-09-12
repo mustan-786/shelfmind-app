@@ -597,19 +597,23 @@ for _, row in df_stock.iterrows():
         
     raw_inventory.append({"item_name": str(name), "current_stock": qty_int})
 
-    if run_forecast or "demand_results" in st.session_state:
-      if run_forecast:
-        with st.spinner("Analyzing regional calendar, climate & inventory..."):
-          st.session_state["demand_results"] = analyze_inventory_demand(
-              raw_inventory
-          )
+    if run_forecast:
+            with st.spinner("Analyzing regional calendar, climate & inventory..."):
+                results, error_msg = analyze_inventory_demand(raw_inventory)
+                st.session_state["demand_results"] = results
+                st.session_state["demand_error"] = error_msg
 
-      results = st.session_state.get("demand_results", [])
+        results = st.session_state.get("demand_results", [])
+        error_msg = st.session_state.get("demand_error", None)
 
-      if results:
-        # 1. Quick Counters
-        surges = [r for r in results if r["status"] == "SURGE"]
-        dead_stocks = [r for r in results if r["status"] == "DEAD_STOCK"]
+        if results:
+            # (Your card rendering code goes here)
+            ...
+        else:
+            if error_msg:
+                st.error(f"⚠️ Error from Demand Engine: {error_msg}")
+            else:
+                st.warning("No inventory items found to analyze.")
 
         st.markdown(
             f"""
