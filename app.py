@@ -8,7 +8,11 @@ import qrcode
 import streamlit as st
 
 import database as db
-from demand_radar import analyze_inventory_demand
+from demand_radar import (
+    analyze_inventory_demand,
+    audit_shelf_photo_with_ai,
+    generate_dead_stock_strategy,
+)
 from ocr_pipeline import extract_invoice_data_with_ai
 import sms_service
 from translations import TRANSLATIONS
@@ -30,6 +34,7 @@ st.markdown("""
     .stApp {
         background-color: var(--background-color) !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        padding-bottom: 95px !important;
     }
 
     p, span, label, div[data-testid="stMarkdownContainer"] {
@@ -228,6 +233,34 @@ st.markdown("""
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+    }
+
+    /* Floating Center Scanner FAB */
+    .fab-dock {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .fab-dock div[data-testid="stButton"] > button {
+        background: linear-gradient(135deg, #ED1C24 0%, #B81319 100%) !important;
+        color: #FFFFFF !important;
+        border-radius: 50px !important;
+        padding: 12px 28px !important;
+        font-size: 15px !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.5px !important;
+        border: 2px solid #FFFFFF !important;
+        box-shadow: 0 6px 20px rgba(237, 28, 36, 0.4) !important;
+        transition: transform 0.2s ease !important;
+    }
+    .fab-dock div[data-testid="stButton"] > button:hover {
+        transform: scale(1.05) !important;
+        background: #C7141B !important;
     }
 
     header[data-testid="stHeader"] {
@@ -527,7 +560,6 @@ with tab_udhar:
         st.info(t["no_udhar"])
 
 # --- TAB 4: Demand radar ---
-# --- TAB 4: Demand radar ---
 with tab_radar:
     st.markdown(f"#### {t['radar_heading']}")
     st.caption(t['radar_sub'])
@@ -624,50 +656,108 @@ with tab_radar:
         elif error_msg:
             st.error(f"⚠️ Error from Demand Engine: {error_msg}")
 
-            st.markdown(f"""
-                <div style="display:flex; gap:12px; margin-bottom:16px;">
-                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #ED1C24; border-radius:10px; padding:10px 14px;">
-                        <span style="font-size:11px; font-weight:700; opacity:0.7;">HIGH DEMAND SURGES</span>
-                        <div style="font-size:20px; font-weight:800; color:#ED1C24;">{len(surges)} Items</div>
+    # Dead Stock Section
+    st.divider()
+    st.markdown(f"#### {t['dead_tab_heading']}")
+    st.caption(t['dead_tab_sub'])
+
+    dead_candidates = db.get_dead_stock_candidates(store_phone, days_threshold=30)
+    if not dead_candidates:
+        st.success(t['dead_no_items'])
+    else:
+        total_blocked = sum(item["capital_blocked"] for item in dead_candidates)
+
+        st.markdown(f"""
+            <div class="kotak-udhar-card" style="border-left-color: #D97706 !important;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:13px; font-weight:700; color:#D97706; text-transform:uppercase;">
+                            {t['dead_blocked_val']}
+                        </div>
+                        <div style="font-size:12px; opacity:0.75;">{len(dead_candidates)} slow-moving products</div>
                     </div>
-                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #D97706; border-radius:10px; padding:10px 14px;">
-                        <span style="font-size:11px; font-weight:700; opacity:0.7;">DEAD-STOCK RISKS</span>
-                        <div style="font-size:20px; font-weight:800; color:#D97706;">{len(dead_stocks)} Items</div>
+                    <div style="font-size:22px; font-weight:800; color:#D97706;">
+                        ₹{total_blocked:,.0f}
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        if st.button(t['dead_action_btn'], use_container_width=True):
+            with st.spinner("Calculating Kirana combo & clearance strategies..."):
+                st.session_state["dead_stock_ai"] = generate_dead_stock_strategy(
+                    dead_candidates, 
+                    lang_name=lang_choice
+                )
+
+        strategies = st.session_state.get("dead_stock_ai", [])
+
+        for item in dead_candidates:
+            ai_info = next((s for s in strategies if s.get("item_name") == item["item_name"]), None)
+            discount_badge = ai_info.get("discount_recommendation", "Suggested 5% Off") if ai_info else "Slow Mover"
+            pitch_text = ai_info.get("pitch", "Place near counter to increase checkout visibility.") if ai_info else ""
+
+            st.markdown(f"""
+                <div class="kotak-udhar-card" style="border-left-color: #D97706 !important;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div style="font-size:16px; font-weight:700;">📦 {item['item_name']}</div>
+                            <div style="font-size:12px; opacity:0.75; margin-top:2px;">
+                                Qty: <b>{item['quantity']}</b> · Blocked: <b>₹{item['capital_blocked']:,.0f}</b>
+                            </div>
+                        </div>
+                        <span class="badge-dead">{discount_badge}</span>
+                    </div>
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(128,128,128,0.2); font-size:13px;">
+                        <b>{t['dead_pitch_label']}:</b> <em>"{pitch_text}"</em>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
 
-            for item in results:
-                status = item.get("status", "STABLE")
-                badge_class = (
-                    "badge-surge" if status == "SURGE"
-                    else "badge-dead" if status == "DEAD_STOCK"
-                    else "badge-stable"
-                )
-                border_color = (
-                    "#ED1C24" if status == "SURGE"
-                    else "#D97706" if status == "DEAD_STOCK"
-                    else "#059669"
-                )
+# -------------------------------------------------------------
+# 📸 7. FLOATING CENTER SHELF SCANNER BUTTON (Kotak 811 FAB)
+# -------------------------------------------------------------
+if "show_shelf_cam" not in st.session_state:
+    st.session_state["show_shelf_cam"] = False
 
-                st.markdown(f"""
-                    <div class="kotak-udhar-card" style="border-left-color: {border_color} !important;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                            <span style="font-size:16px; font-weight:700; color:var(--text-color);">{item.get('item_name', '')}</span>
-                            <span class="{badge_class}">{status.replace('_', ' ')}</span>
-                        </div>
-                        <div style="font-size:13px; color:var(--text-color); opacity:0.85; margin-bottom:4px;">
-                            <b>Signal:</b> {item.get('reason', '')}
-                        </div>
-                        <div style="font-size:13px; font-weight:600; color:{border_color};">
-                            💡 {item.get('action', '')}
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        elif error_msg:
-            st.error(f"⚠️ Error from Demand Engine: {error_msg}")
+# Floating Center Button Anchor
+st.markdown('<div class="fab-dock">', unsafe_allow_html=True)
+if st.button(t.get("fab_scan_label", "📸 Scan Shelf Rack"), key="btn_center_shelf_fab"):
+    st.session_state["show_shelf_cam"] = True
+st.markdown('</div>', unsafe_allow_html=True)
 
-# 6. Sidebar configuration
+# Dialog Modal for Shelf Scan
+if st.session_state.get("show_shelf_cam"):
+    @st.dialog(t.get("shelf_dialog_title", "📸 Store Shelf Rack Audit"))
+    def open_shelf_audit_dialog():
+        st.caption(t.get("shelf_dialog_sub", "Point your camera at the store shelf to capture current inventory arrangement."))
+        shelf_img = st.camera_input(t.get("shelf_dialog_snap", "Snap store shelf rack"))
+
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            if st.button(t.get("shelf_dialog_cancel", "Cancel"), use_container_width=True):
+                st.session_state["show_shelf_cam"] = False
+                st.rerun()
+        with col_c2:
+            if shelf_img is not None:
+                if st.button(t.get("shelf_dialog_btn", "⚡ Inspect Movement"), type="primary", use_container_width=True):
+                    with st.spinner(t.get("shelf_dialog_analyzing", "AI scanning shelf brands and packet counts...")):
+                        detected, err = audit_shelf_photo_with_ai(
+                            shelf_img.getvalue(),
+                            mime_type=shelf_img.type or "image/jpeg",
+                            lang_name=lang_choice
+                        )
+                        if detected:
+                            db.save_shelf_audit(store_phone, detected)
+                            st.toast(t.get("shelf_audit_success", "Audit logged: Recognized {count} shelf products.").format(count=len(detected)))
+                            st.session_state["show_shelf_cam"] = False
+                            st.rerun()
+                        else:
+                            st.error(t.get("shelf_audit_failed", "Audit analysis failed: {err}").format(err=err))
+
+    open_shelf_audit_dialog()
+
+# 8. Sidebar Configuration
 with st.sidebar:
     st.markdown("### ⚙️ Store Profile Settings")
 
