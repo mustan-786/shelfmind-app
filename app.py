@@ -1,6 +1,65 @@
 import streamlit as st
+def apply_kotak_theme():
+    st.markdown("""
+        <style>
+        /* Base page background */
+        .stApp {
+            background-color: #F5F7FA;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Top header styling */
+        header[data-testid="stHeader"] {
+            background-color: #ED1C24;
+        }
+
+        /* Kotak-style Elevated Cards */
+        .kotak-card {
+            background-color: #FFFFFF;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #ED1C24;
+        }
+
+        /* Primary action button (Kotak Red) */
+        div.stButton > button:first-child {
+            background-color: #ED1C24;
+            color: #FFFFFF;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            width: 100%;
+            transition: all 0.2s ease-in-out;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: #C7141B;
+            color: #FFFFFF;
+        }
+
+        /* Balance & Key Metric Numbers */
+        .kotak-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0B2265;
+        }
+        .kotak-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Hide unnecessary Streamlit default elements */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
 import os
 from PIL import Image
+
 
 logo_path = "logo.png"
 page_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
