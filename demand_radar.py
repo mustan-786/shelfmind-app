@@ -7,12 +7,12 @@ import streamlit as st
 
 
 def get_gemini_client():
-  api_key = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
-  if not api_key:
-    raise ValueError(
-        "Missing GEMINI_API_KEY in Streamlit Secrets or environment variables."
-    )
-  return genai.Client(api_key=api_key)
+    api_key = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
+    if not api_key:
+        raise ValueError(
+            "Missing GEMINI_API_KEY in Streamlit Secrets or environment variables."
+        )
+    return genai.Client(api_key=api_key)
 
 
 def audit_shelf_photo_with_ai(
@@ -20,13 +20,13 @@ def audit_shelf_photo_with_ai(
     mime_type: str = "image/jpeg",
     lang_name: str = "English",
 ):
-  """Analyzes a Kirana shelf photograph to recognize products, estimate pack
+    """Analyzes a Kirana shelf photograph to recognize products, estimate pack
 
-  counts, and evaluate physical movement/dust/clutter.
-  """
-  client = get_gemini_client()
+    counts, and evaluate physical movement.
+    """
+    client = get_gemini_client()
 
-  prompt = f"""
+    prompt = f"""
     You are an automated Kirana Store Shelf Inspector in India.
     Inspect this photograph of grocery shelves/racks.
     Language for observations: {lang_name}
@@ -46,21 +46,21 @@ def audit_shelf_photo_with_ai(
     ]
     """
 
-  try:
-    response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=[
-            types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-            prompt,
-        ],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.1,
-        ),
-    )
-    return json.loads(response.text), None
-  except Exception as e:
-    return [], str(e)
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                prompt,
+            ],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.1,
+            ),
+        )
+        return json.loads(response.text), None
+    except Exception as e:
+        return [], str(e)
 
 
 def analyze_inventory_demand(
@@ -68,12 +68,13 @@ def analyze_inventory_demand(
     location: str = "Maharashtra, India",
     lang_name: str = "English",
 ):
-  if not inventory_items:
-    return [], None
+    """Evaluates regional demand signals, seasonal spikes, and stock health."""
+    if not inventory_items:
+        return [], None
 
-  current_date = date.today().strftime("%B %d, %Y")
+    current_date = date.today().strftime("%B %d, %Y")
 
-  prompt = f"""
+    prompt = f"""
     You are an expert FMCG & Kirana Store supply chain analyst in {location}.
     Current Date: {current_date}
     Target Language for descriptions: {lang_name}
@@ -103,30 +104,27 @@ def analyze_inventory_demand(
     ]
     """
 
-  try:
-    client = get_gemini_client()
-    response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.2,
-        ),
-    )
-    return json.loads(response.text), None
-  except Exception as e:
-    return [], str(e)
+    try:
+        client = get_gemini_client()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+        )
+        return json.loads(response.text), None
+    except Exception as e:
+        return [], str(e)
 
 
 def generate_dead_stock_strategy(dead_items: list, lang_name: str = "English"):
-  """Suggests instant liquidation tactics, Kirana combo offers, and checkout
+    """Generates Kirana combo clearance ideas and customer counter pitches."""
+    if not dead_items:
+        return []
 
-  pitches for dead stock items.
-  """
-  if not dead_items:
-    return []
-
-  prompt = f"""
+    prompt = f"""
     You are a Kirana store retail consultant in Maharashtra, India.
     Language: {lang_name}
 
@@ -149,16 +147,16 @@ def generate_dead_stock_strategy(dead_items: list, lang_name: str = "English"):
     ]
     """
 
-  try:
-    client = get_gemini_client()
-    response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.2,
-        ),
-    )
-    return json.loads(response.text)
-  except Exception:
-    return []
+    try:
+        client = get_gemini_client()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+        )
+        return json.loads(response.text)
+    except Exception:
+        return []
