@@ -576,10 +576,26 @@ with tab_radar:
       )
 
     # Format items for LLM evaluation
-    raw_inventory = [
-        {"item_name": row["Item SKU"], "current_stock": int(row["Quantity"])}
-        for _, row in df_stock.iterrows()
-    ]
+    raw_inventory = []
+for _, row in df_stock.iterrows():
+    # Safely retrieve item name
+    name = row.get("Item SKU") or row.get("Item Name") or row.get("item_name") or "Unknown Item"
+    
+    # Safely retrieve quantity regardless of column naming or casing
+    qty = (
+        row.get("Quantity") or 
+        row.get("Qty") or 
+        row.get("qty") or 
+        row.get("quantity") or 
+        1
+    )
+    
+    try:
+        qty_int = int(qty)
+    except (ValueError, TypeError):
+        qty_int = 1
+        
+    raw_inventory.append({"item_name": str(name), "current_stock": qty_int})
 
     if run_forecast or "demand_results" in st.session_state:
       if run_forecast:
