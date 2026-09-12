@@ -155,46 +155,70 @@ st.markdown("""
     }
 
     /* 6. Continuous Smooth Red Sliding Tab Across All 4 Tabs */
+   /* ------------------------------------------------ */
+    /* 🎯 PERFECT 1:1 SLIDING RED INDICATOR & FULL TRACK */
+    /* ------------------------------------------------ */
+    
+    /* 1. Full-width baseline track that extends 100% across all tabs */
     .stTabs [data-baseweb="tab-list"] {
-        display: flex !important;
-        gap: 0px !important;
-        background-color: transparent !important;
-        border-bottom: 1px solid rgba(128, 128, 128, 0.25) !important;
         position: relative !important;
-        padding: 0 !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        flex: 1 !important;
-        text-align: center !important;
-        height: 46px !important;
         background-color: transparent !important;
         border: none !important;
+        gap: 8px !important;
+        padding: 0 0 2px 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Dedicated continuous gray baseline under all 4 tabs */
+    .stTabs [data-baseweb="tab-list"]::after {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        height: 2px !important;
+        background-color: rgba(128, 128, 128, 0.25) !important;
+        z-index: 1 !important;
+    }
+
+    /* 2. Individual Tab Buttons - Clear borders so they don't clip calculations */
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        height: 44px !important;
+        padding: 0 14px !important;
         font-weight: 600 !important;
         font-size: 14px !important;
-        padding: 0 10px !important;
         color: var(--text-color) !important;
         opacity: 0.65;
-        transition: opacity 0.2s ease;
+        white-space: nowrap !important;
+        transition: opacity 0.2s ease-in-out !important;
+        z-index: 2 !important;
     }
+
     .stTabs [aria-selected="true"] {
-        color: #ED1C24 !important;
-        opacity: 1 !important;
         background-color: transparent !important;
+        color: #ED1C24 !important;
+        opacity: 1.0 !important;
         border: none !important;
     }
-    /* Seamless horizontal slider bar */
+
+    /* 3. Hardware-Accelerated Sliding Red Highlight Bar */
     .stTabs [data-baseweb="tab-highlight"] {
         background-color: #ED1C24 !important;
         height: 3px !important;
         bottom: 0px !important;
-        border-radius: 2px 2px 0 0 !important;
-        transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), width 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        border-radius: 3px 3px 0 0 !important;
+        z-index: 3 !important; /* Sits directly on top of the gray line */
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
+    
+    /* Clean tab borders across Streamlit versions */
+    .stTabs [data-baseweb="tab-border"] {
+        display: none !important;
     }
-    footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
