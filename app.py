@@ -71,49 +71,45 @@ st.markdown("""
     }
 
     /* 3. KPI Grid with Distinct Black / Slate Accents */
+    /* KPI Cards - Identical to Udhar Card */
     .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
+        flex-direction: column;
         gap: 12px;
         margin-bottom: 20px;
     }
     .kotak-kpi-card {
         background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.25) !important;
-        border-radius: 14px;
-        padding: 14px 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        /* Signature Dark Slate / Black Accent Strip */
-        border-top: 5px solid #0B2265 !important;
+        border: 1px solid rgba(128, 128, 128, 0.22) !important;
+        border-left: 5px solid #0B2265 !important;
+        border-radius: 12px;
+        padding: 14px 18px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     .kotak-kpi-card.accent-red {
-        /* 4th Card Udhar Red Accent Strip */
-        border-top: 5px solid #ED1C24 !important;
+        border-left-color: #ED1C24 !important;
     }
-    .kpi-meta-label {
-        font-size: 11px;
+    .kpi-card-title {
+        font-size: 15px;
         font-weight: 700;
         color: var(--text-color) !important;
-        opacity: 0.72;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
     }
-    .kpi-main-number {
-        font-size: 22px;
+    .kpi-card-sub {
+        font-size: 12px;
+        color: var(--text-color) !important;
+        opacity: 0.72;
+        margin-top: 2px;
+    }
+    .kpi-card-amount {
+        font-size: 19px;
         font-weight: 800;
         color: var(--text-color) !important;
-        margin-top: 5px;
+        text-align: right;
     }
-    .kpi-main-number.dark-accent {
-        color: #0F172A !important; /* Bold deep black/slate in light mode */
-    }
-    /* Dark mode override for primary numbers */
-    @media (prefers-color-scheme: dark) {
-        .kpi-main-number.dark-accent {
-            color: #F8FAFC !important;
-        }
-    }
-    .kpi-main-number.red {
+    .kpi-card-amount.red {
         color: #ED1C24 !important;
     }
 
@@ -313,20 +309,32 @@ total_udhar = db.get_total_udhar_pending(store_phone)
 st.markdown(f"""
     <div class="kpi-grid">
         <div class="kotak-kpi-card">
-            <div class="kpi-meta-label">{t['kpi_skus']}</div>
-            <div class="kpi-main-number dark-accent">{skus} <span style="font-size:12px; font-weight:normal; opacity:0.75;">Items</span></div>
+            <div>
+                <div class="kpi-card-title">📦 {t['kpi_skus']}</div>
+                <div class="kpi-card-sub">Active catalog inventory</div>
+            </div>
+            <div class="kpi-card-amount">{skus} <span style="font-size:12px; font-weight:normal; opacity:0.75;">Items</span></div>
         </div>
         <div class="kotak-kpi-card">
-            <div class="kpi-meta-label">{t['kpi_capital']}</div>
-            <div class="kpi-main-number dark-accent">₹{capital:,.0f}</div>
+            <div>
+                <div class="kpi-card-title">💼 {t['kpi_capital']}</div>
+                <div class="kpi-card-sub">Total stock purchase value</div>
+            </div>
+            <div class="kpi-card-amount">₹{capital:,.0f}</div>
         </div>
         <div class="kotak-kpi-card">
-            <div class="kpi-meta-label">{t['kpi_dead']}</div>
-            <div class="kpi-main-number dark-accent">₹{dead:,.0f}</div>
+            <div>
+                <div class="kpi-card-title">⏳ {t['kpi_dead']}</div>
+                <div class="kpi-card-sub">Slow-moving stock estimate</div>
+            </div>
+            <div class="kpi-card-amount">₹{dead:,.0f}</div>
         </div>
         <div class="kotak-kpi-card accent-red">
-            <div class="kpi-meta-label">{t['kpi_udhar']}</div>
-            <div class="kpi-main-number red">₹{total_udhar:,.0f}</div>
+            <div>
+                <div class="kpi-card-title">🚨 {t['kpi_udhar']}</div>
+                <div class="kpi-card-sub">Customer receivables pending</div>
+            </div>
+            <div class="kpi-card-amount red">₹{total_udhar:,.0f}</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
