@@ -550,14 +550,11 @@ with tab_udhar:
                     st.rerun()
     else:
         st.info(t["no_udhar"])
-
 # --- TAB 4: Demand Radar & Stock Alerts ---
-# --- TAB 4: AI Demand Radar & Dead-Stock Alerts ---
 with tab_radar:
     st.markdown("#### ⚡ AI Demand Radar & Seasonality Forecast")
     st.caption("Real-time demand signals generated from regional weather, upcoming festivals, and stock turnover.")
 
-    # Fetch current stock from database
     df_stock = db.get_inventory_dataframe(store_phone)
 
     if df_stock.empty:
@@ -567,7 +564,6 @@ with tab_radar:
         with col_btn:
             run_forecast = st.button("🔄 Run Demand Analysis", use_container_width=True, type="primary")
 
-        # Safely format items for LLM evaluation
         raw_inventory = []
         for _, row in df_stock.iterrows():
             name = row.get("Item SKU") or row.get("Item Name") or row.get("item_name") or "Unknown Item"
@@ -597,6 +593,78 @@ with tab_radar:
             surges = [r for r in results if r.get("status") == "SURGE"]
             dead_stocks = [r for r in results if r.get("status") == "DEAD_STOCK"]
 
+            st.markdown(f"""
+                <div style="display:flex; gap:12px; margin-bottom:16px;">
+                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #ED1C24; border-radius:10px; padding:10px 14px;">
+                        <span style="font-size:11px; font-weight:700; opacity:0.7;">HIGH DEMAND SURGES</span>
+                        <div style="font-size:20px; font-weight:800; color:#ED1C24;">{len(surges)} Items</div>
+                    </div>
+                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #D97706; border-radius:10px; padding:10px 14px;">
+                        <span style="font-size:11px; font-weight:700; opacity:0.7;">DEAD-STOCK RISKS</span>
+                        <div style="font-size:20px; font-weight:800; color:#D97706;">{len(dead_stocks)} Items</div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+            for item in results:
+                status = item.get("status", "STABLE")
+                badge_class = (
+                    "badge-surge" if status == "SURGE"
+                    else "badge-dead" if status == "DEAD_STOCK"
+                    else "badge-stable"
+                )
+                border_color = (
+                    "#ED1C24" if status == "SURGE"
+                    else "#D97706" if status == "DEAD_STOCK"
+                    else "#059669"
+                )
+
+                st.markdown(f"""
+                    <div class="kotak-udhar-card" style="border-left-color: {border_color} !important;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                            <span style="font-size:16px; font-weight:700; color:var(--text-color);">{item.get('item_name', '')}</span>
+                            <span class="{badge_class}">{status.replace('_', ' ')}</span>
+                        </div>
+                        <div style="font-size:13px; color:var(--text-color); opacity:0.85; margin-bottom:4px;">
+                            <b>Signal:</b> {item.get('reason', '')}
+                        </div>
+                        <div style="font-size:13px; font-weight:600; color:{border_color};">
+                            💡 {item.get('action', '')}
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+        elif error_msg:
+            st.error(f"⚠️ Error from Demand Engine: {error_msg}")
+
+# -------------------------------------------------------------
+# ⚙️ SIDEBAR: FULL PROFILE EDITING & LOGOUT
+# -------------------------------------------------------------
+with st.sidebar:
+    st.markdown("### ⚙️ Store Profile Settings")
+
+    with st.form("edit_profile_form"):
+        st.caption("Update Store Details:")
+        edit_sname = st.text_input("Store Name", value=shop_name)
+        edit_oname = st.text_input("Owner Name", value=owner_name)
+        edit_upi = st.text_input("Store UPI ID", value=shop_upi)
+
+        if st.form_submit_button("💾 Save Profile Changes", use_container_width=True, type="primary"):
+            if edit_sname and edit_oname and edit_upi:
+                db.update_shopkeeper_profile(store_phone, edit_sname, edit_oname, edit_upi)
+                st.session_state["logged_in_store"]["shop_name"] = edit_sname
+                st.session_state["logged_in_store"]["owner_name"] = edit_oname
+                st.session_state["logged_in_store"]["upi_id"] = edit_upi
+                st.toast("Profile updated successfully!")
+                st.rerun()
+            else:
+                st.error("Fields cannot be empty.")
+
+    st.divider()
+    if st.button("🚪 Logout Store Account", use_container_width=True):
+        st.session_state["logged_in_store"] = None
+        st.session_state["parsed_items"] = None
+        st.query_params.clear()
+        st.rerun()
             st.markdown(f"""
                 <div style="display:flex; gap:12px; margin-bottom:16px;">
                     <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #ED1C24; border-radius:10px; padding:10px 14px;">
