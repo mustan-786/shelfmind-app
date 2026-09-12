@@ -527,18 +527,19 @@ with tab_udhar:
         st.info(t["no_udhar"])
 
 # --- TAB 4: Demand radar ---
+# --- TAB 4: Demand radar ---
 with tab_radar:
-    st.markdown("#### ⚡ AI Demand Radar & Seasonality Forecast")
-    st.caption("Real-time demand signals generated from regional weather, upcoming festivals, and stock turnover.")
+    st.markdown(f"#### {t['radar_heading']}")
+    st.caption(t['radar_sub'])
 
     df_stock = db.get_inventory_dataframe(store_phone)
 
     if df_stock.empty:
-        st.info("Please add items or scan an invoice in the Inventory tab to activate AI demand sensing.")
+        st.info(t['radar_no_items'])
     else:
         col_btn, col_info = st.columns([1, 2])
         with col_btn:
-            run_forecast = st.button("🔄 Run Demand Analysis", use_container_width=True, type="primary")
+            run_forecast = st.button(t['radar_btn_run'], use_container_width=True, type="primary")
 
         raw_inventory = []
         for _, row in df_stock.iterrows():
@@ -557,8 +558,12 @@ with tab_radar:
             raw_inventory.append({"item_name": str(name), "current_stock": qty_int})
 
         if run_forecast:
-            with st.spinner("Analyzing regional calendar, climate & inventory..."):
-                results, error_msg = analyze_inventory_demand(raw_inventory)
+            with st.spinner(t['radar_analyzing']):
+                results, error_msg = analyze_inventory_demand(
+                    raw_inventory,
+                    location="Maharashtra, India",
+                    lang_name=lang_choice
+                )
                 st.session_state["demand_results"] = results
                 st.session_state["demand_error"] = error_msg
 
@@ -568,6 +573,56 @@ with tab_radar:
         if results:
             surges = [r for r in results if r.get("status") == "SURGE"]
             dead_stocks = [r for r in results if r.get("status") == "DEAD_STOCK"]
+
+            st.markdown(f"""
+                <div style="display:flex; gap:12px; margin-bottom:16px;">
+                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #ED1C24; border-radius:10px; padding:10px 14px;">
+                        <span style="font-size:11px; font-weight:700; opacity:0.7;">{t['radar_surge_title']}</span>
+                        <div style="font-size:20px; font-weight:800; color:#ED1C24;">{len(surges)} {t['radar_items_suffix']}</div>
+                    </div>
+                    <div style="flex:1; background-color:var(--secondary-background-color); border:1px solid rgba(128,128,128,0.2); border-left:4px solid #D97706; border-radius:10px; padding:10px 14px;">
+                        <span style="font-size:11px; font-weight:700; opacity:0.7;">{t['radar_dead_title']}</span>
+                        <div style="font-size:20px; font-weight:800; color:#D97706;">{len(dead_stocks)} {t['radar_items_suffix']}</div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+            status_labels = {
+                "SURGE": t["radar_status_surge"],
+                "DEAD_STOCK": t["radar_status_dead"],
+                "STABLE": t["radar_status_stable"]
+            }
+
+            for item in results:
+                status = item.get("status", "STABLE")
+                badge_class = (
+                    "badge-surge" if status == "SURGE"
+                    else "badge-dead" if status == "DEAD_STOCK"
+                    else "badge-stable"
+                )
+                border_color = (
+                    "#ED1C24" if status == "SURGE"
+                    else "#D97706" if status == "DEAD_STOCK"
+                    else "#059669"
+                )
+                display_status = status_labels.get(status, status)
+
+                st.markdown(f"""
+                    <div class="kotak-udhar-card" style="border-left-color: {border_color} !important;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                            <span style="font-size:16px; font-weight:700; color:var(--text-color);">{item.get('item_name', '')}</span>
+                            <span class="{badge_class}">{display_status}</span>
+                        </div>
+                        <div style="font-size:13px; color:var(--text-color); opacity:0.85; margin-bottom:4px;">
+                            <b>{t['radar_signal_label']}:</b> {item.get('reason', '')}
+                        </div>
+                        <div style="font-size:13px; font-weight:600; color:{border_color};">
+                            💡 {item.get('action', '')}
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+        elif error_msg:
+            st.error(f"⚠️ Error from Demand Engine: {error_msg}")
 
             st.markdown(f"""
                 <div style="display:flex; gap:12px; margin-bottom:16px;">
