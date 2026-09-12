@@ -15,6 +15,54 @@ def get_gemini_client():
   return genai.Client(api_key=api_key)
 
 
+def audit_shelf_photo_with_ai(
+    image_bytes: bytes,
+    mime_type: str = "image/jpeg",
+    lang_name: str = "English",
+):
+  """Analyzes a Kirana shelf photograph to recognize products, estimate pack
+
+  counts, and evaluate physical movement/dust/clutter.
+  """
+  client = get_gemini_client()
+
+  prompt = f"""
+    You are an automated Kirana Store Shelf Inspector in India.
+    Inspect this photograph of grocery shelves/racks.
+    Language for observations: {lang_name}
+
+    Tasks:
+    1. Identify distinct FMCG/grocery packaged items visible on the shelves (e.g., biscuits, tea, soaps, detergents, cooking oil, spices, noodles).
+    2. Estimate the visible front-facing packet or bottle count.
+    3. Note shelf placement observation (e.g., 'Primary eye-level display', 'Stagnant rear shelf', 'Single leftover unit').
+
+    Return STRICTLY a JSON array of objects:
+    [
+      {{
+        "item_name": "Recognized Product Name",
+        "estimated_count": 5,
+        "shelf_observation": "Brief observation in {lang_name}"
+      }}
+    ]
+    """
+
+  try:
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=[
+            types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+            prompt,
+        ],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.1,
+        ),
+    )
+    return json.loads(response.text), None
+  except Exception as e:
+    return [], str(e)
+
+
 def analyze_inventory_demand(
     inventory_items: list,
     location: str = "Maharashtra, India",
@@ -68,3 +116,49 @@ def analyze_inventory_demand(
     return json.loads(response.text), None
   except Exception as e:
     return [], str(e)
+
+
+def generate_dead_stock_strategy(dead_items: list, lang_name: str = "English"):
+  """Suggests instant liquidation tactics, Kirana combo offers, and checkout
+
+  pitches for dead stock items.
+  """
+  if not dead_items:
+    return []
+
+  prompt = f"""
+    You are a Kirana store retail consultant in Maharashtra, India.
+    Language: {lang_name}
+
+    These grocery products have had no sales movement and are blocking shop capital:
+    {json.dumps(dead_items, indent=2)}
+
+    For each product, generate a retail clearance tactic tailored to an Indian Kirana store:
+    - Counter bundle offer (e.g., Pair with tea powder or atta)
+    - Direct counter discount
+    - Verbal sales pitch for the shopkeeper to use with walk-in customers
+
+    Return STRICTLY a JSON array of objects:
+    [
+      {{
+        "item_name": "string",
+        "tactic": "Short strategy tag in {lang_name}",
+        "pitch": "Counter sales pitch in {lang_name}",
+        "discount_recommendation": "e.g., ₹5 Off or Combo Scheme in {lang_name}"
+      }}
+    ]
+    """
+
+  try:
+    client = get_gemini_client()
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.2,
+        ),
+    )
+    return json.loads(response.text)
+  except Exception:
+    return []
