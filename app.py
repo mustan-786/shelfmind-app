@@ -1,62 +1,32 @@
 import streamlit as st
 def apply_kotak_theme():
     st.markdown("""
-        <style>
-        /* Base page background */
-        .stApp {
-            background-color: #F5F7FA;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        /* Top header styling */
-        header[data-testid="stHeader"] {
-            background-color: #ED1C24;
-        }
-
-        /* Kotak-style Elevated Cards */
-        .kotak-card {
-            background-color: #FFFFFF;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid #ED1C24;
-        }
-
-        /* Primary action button (Kotak Red) */
-        div.stButton > button:first-child {
-            background-color: #ED1C24;
-            color: #FFFFFF;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            padding: 10px 20px;
-            width: 100%;
-            transition: all 0.2s ease-in-out;
-        }
-        div.stButton > button:first-child:hover {
-            background-color: #C7141B;
-            color: #FFFFFF;
-        }
-
-        /* Balance & Key Metric Numbers */
-        .kotak-amount {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0B2265;
-        }
-        .kotak-label {
-            font-size: 12px;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Hide unnecessary Streamlit default elements */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        </style>
-    """, unsafe_allow_html=True)
+<style>
+    /* Card container */
+    .kotak-card {
+        background-color: #FFFFFF !important;
+        border-radius: 14px !important;
+        padding: 20px !important;
+        margin-bottom: 16px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        border-left: 6px solid #ED1C24 !important;
+    }
+    .kotak-amount {
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        color: #0B2265 !important;
+        margin-top: 4px !important;
+    }
+    .kotak-label {
+        font-size: 12px !important;
+        color: #718096 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        font-weight: 600 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+    
     st.markdown("""
     <div class="kotak-card">
         <div class="kotak-label">Total Outstanding Udhar</div>
