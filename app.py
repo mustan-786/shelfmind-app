@@ -57,6 +57,14 @@ def apply_kotak_theme():
         footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
+    total_udhar = 14250.00  # replace with your DB query variable
+
+st.markdown(f"""
+    <div class="kotak-card">
+        <div class="kotak-label">Total Outstanding Udhar</div>
+        <div class="kotak-amount">₹ {total_udhar:,.2f}</div>
+    </div>
+""", unsafe_allow_html=True)
 import os
 from PIL import Image
 
