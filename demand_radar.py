@@ -48,7 +48,7 @@ def audit_shelf_photo_with_ai(
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=[
                 types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
                 prompt,
@@ -107,7 +107,7 @@ def analyze_inventory_demand(
     try:
         client = get_gemini_client()
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -150,7 +150,7 @@ def generate_dead_stock_strategy(dead_items: list, lang_name: str = "English"):
     try:
         client = get_gemini_client()
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
