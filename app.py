@@ -26,13 +26,18 @@ st.set_page_config(
 # 2. POLISHED KOTAK 811 THEME WITH HIGH-CONTRAST TEXT & SLIDING TAB
 st.markdown("""
 <style>
-    /* 1. Theme-Adaptive Base Canvas */
+    /* 1. Universal Theme Adaptation */
     .stApp {
         background-color: var(--background-color) !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* 2. Top Header Bar (Adapts gradient depth to match theme) */
+    /* Force all plain text to adapt cleanly between light & dark */
+    p, span, label, div[data-testid="stMarkdownContainer"] {
+        color: var(--text-color);
+    }
+
+    /* 2. Top Header */
     .kotak-header {
         background: linear-gradient(135deg, #ED1C24 0%, #991B1B 100%);
         border-radius: 16px;
@@ -53,7 +58,7 @@ st.markdown("""
     }
     .kotak-header-sub {
         font-size: 13px;
-        opacity: 0.9;
+        opacity: 0.92;
         margin-top: 3px;
     }
     .kotak-badge {
@@ -65,7 +70,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* 3. Theme-Adaptive Elevated Surface Cards */
+    /* 3. KPI Grid with Distinct Black / Slate Accents */
     .kpi-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -74,20 +79,22 @@ st.markdown("""
     }
     .kotak-kpi-card {
         background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        border: 1px solid rgba(128, 128, 128, 0.25) !important;
         border-radius: 14px;
         padding: 14px 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        border-top: 4px solid #0284C7;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        /* Signature Dark Slate / Black Accent Strip */
+        border-top: 5px solid #0B2265 !important;
     }
     .kotak-kpi-card.accent-red {
-        border-top: 4px solid #ED1C24 !important;
+        /* 4th Card Udhar Red Accent Strip */
+        border-top: 5px solid #ED1C24 !important;
     }
     .kpi-meta-label {
         font-size: 11px;
         font-weight: 700;
         color: var(--text-color) !important;
-        opacity: 0.7;
+        opacity: 0.72;
         text-transform: uppercase;
         letter-spacing: 0.6px;
     }
@@ -95,16 +102,25 @@ st.markdown("""
         font-size: 22px;
         font-weight: 800;
         color: var(--text-color) !important;
-        margin-top: 4px;
+        margin-top: 5px;
+    }
+    .kpi-main-number.dark-accent {
+        color: #0F172A !important; /* Bold deep black/slate in light mode */
+    }
+    /* Dark mode override for primary numbers */
+    @media (prefers-color-scheme: dark) {
+        .kpi-main-number.dark-accent {
+            color: #F8FAFC !important;
+        }
     }
     .kpi-main-number.red {
         color: #ED1C24 !important;
     }
 
-    /* 4. Adaptive Udhar Cards */
+    /* 4. Udhar Ledger Card */
     .kotak-udhar-card {
         background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        border: 1px solid rgba(128, 128, 128, 0.22) !important;
         border-left: 5px solid #ED1C24 !important;
         border-radius: 12px;
         padding: 14px 16px;
@@ -129,7 +145,7 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* 5. Kotak Action Buttons */
+    /* 5. Kotak Primary Buttons */
     div.stButton > button[kind="primary"], div.stButton > button:first-child {
         background-color: #ED1C24 !important;
         color: #FFFFFF !important;
@@ -142,35 +158,43 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 6. Sliding Red Tab Indicator */
+    /* 6. Continuous Smooth Red Sliding Tab Across All 4 Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 20px;
+        display: flex !important;
+        gap: 0px !important;
         background-color: transparent !important;
-        padding-bottom: 2px;
         border-bottom: 1px solid rgba(128, 128, 128, 0.25) !important;
+        position: relative !important;
+        padding: 0 !important;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 44px;
+        flex: 1 !important;
+        text-align: center !important;
+        height: 46px !important;
         background-color: transparent !important;
         border: none !important;
         font-weight: 600 !important;
         font-size: 14px !important;
-        padding: 0 8px !important;
+        padding: 0 10px !important;
         color: var(--text-color) !important;
         opacity: 0.65;
+        transition: opacity 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
         color: #ED1C24 !important;
         opacity: 1 !important;
+        background-color: transparent !important;
+        border: none !important;
     }
+    /* Seamless horizontal slider bar */
     .stTabs [data-baseweb="tab-highlight"] {
         background-color: #ED1C24 !important;
         height: 3px !important;
-        border-radius: 3px 3px 0 0 !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        bottom: 0px !important;
+        border-radius: 2px 2px 0 0 !important;
+        transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), width 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
     }
 
-    /* Keep settings header visible */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
     }
@@ -290,15 +314,15 @@ st.markdown(f"""
     <div class="kpi-grid">
         <div class="kotak-kpi-card">
             <div class="kpi-meta-label">{t['kpi_skus']}</div>
-            <div class="kpi-main-number">{skus} <span style="font-size:12px; font-weight:normal; color:#64748B;">Items</span></div>
+            <div class="kpi-main-number dark-accent">{skus} <span style="font-size:12px; font-weight:normal; opacity:0.75;">Items</span></div>
         </div>
         <div class="kotak-kpi-card">
             <div class="kpi-meta-label">{t['kpi_capital']}</div>
-            <div class="kpi-main-number">₹{capital:,.0f}</div>
+            <div class="kpi-main-number dark-accent">₹{capital:,.0f}</div>
         </div>
         <div class="kotak-kpi-card">
             <div class="kpi-meta-label">{t['kpi_dead']}</div>
-            <div class="kpi-main-number">₹{dead:,.0f}</div>
+            <div class="kpi-main-number dark-accent">₹{dead:,.0f}</div>
         </div>
         <div class="kotak-kpi-card accent-red">
             <div class="kpi-meta-label">{t['kpi_udhar']}</div>
