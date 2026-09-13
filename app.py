@@ -662,8 +662,10 @@ with tab_radar:
     with st.expander(f"🖼️ {t.get('shelf_comp_heading', 'Shelf Rack Visual Proof & Audit History')}"):
         st.caption(t.get('shelf_comp_sub', 'Compare recent shelf scans to visually verify stagnant stock.'))
 
-        latest_audit, prev_audit = db.get_audit_comparison_pair(store_phone)
-
+        if hasattr(db, "get_audit_comparison_pair"):
+            latest_audit, prev_audit = db.get_audit_comparison_pair(store_phone)
+        else:
+            latest_audit, prev_audit = None, None
         if latest_audit and prev_audit:
             col_prev, col_latest = st.columns(2)
 
