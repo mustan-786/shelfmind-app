@@ -387,7 +387,7 @@ st.markdown(f"""
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
             <div class="kotak-badge">UPI: {shop_upi}</div>
-            {logo_html}
+            {smlogo_html}
         </div>
     </div>
 """, unsafe_allow_html=True)
