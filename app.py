@@ -455,72 +455,39 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# --- SEGMENTED 2x2 ACTION BUTTON NAVIGATION ---
-if "active_nav" not in st.session_state:
-    st.session_state["active_nav"] = "scan"
-
-nav_row1_col1, nav_row1_col2 = st.columns(2)
-with nav_row1_col1:
-    btn_type = "primary" if st.session_state["active_nav"] == "scan" else "secondary"
-    if st.button(t["tab_scan"], type=btn_type, use_container_width=True):
-        st.session_state["active_nav"] = "scan"
-        st.rerun()
-
-with nav_row1_col2:
-    btn_type = "primary" if st.session_state["active_nav"] == "inv" else "secondary"
-    if st.button(t["tab_inventory"], type=btn_type, use_container_width=True):
-        st.session_state["active_nav"] = "inv"
-        st.rerun()
-
-nav_row2_col1, nav_row2_col2 = st.columns(2)
-with nav_row2_col1:
-    btn_type = "primary" if st.session_state["active_nav"] == "udhar" else "secondary"
-    if st.button(t["tab_udhar"], type=btn_type, use_container_width=True):
-        st.session_state["active_nav"] = "udhar"
-        st.rerun()
-
-with nav_row2_col2:
-    btn_type = "primary" if st.session_state["active_nav"] == "radar" else "secondary"
-    if st.button(t["tab_demand"], type=btn_type, use_container_width=True):
-        st.session_state["active_nav"] = "radar"
-        st.rerun()
-
-st.write("")  # visual spacing
-
-# --- TAB 1: Vision OCR bill scan ---
 # -------------------------------------------------------------
 # 🧭 6. SEGMENTED 2x2 ACTION BUTTON NAVIGATION
 # -------------------------------------------------------------
 if "active_nav" not in st.session_state:
     st.session_state["active_nav"] = "scan"
 
-nav_r1_c1, nav_r1_c2 = st.columns(2)
-with nav_r1_c1:
+nav_row1_col1, nav_row1_col2 = st.columns(2)
+with nav_row1_col1:
     btn_type = "primary" if st.session_state["active_nav"] == "scan" else "secondary"
-    if st.button(t["tab_scan"], type=btn_type, use_container_width=True):
+    if st.button(t["tab_scan"], type=btn_type, use_container_width=True, key="nav_btn_scan"):
         st.session_state["active_nav"] = "scan"
         st.rerun()
 
-with nav_r1_c2:
+with nav_row1_col2:
     btn_type = "primary" if st.session_state["active_nav"] == "inv" else "secondary"
-    if st.button(t["tab_inventory"], type=btn_type, use_container_width=True):
+    if st.button(t["tab_inventory"], type=btn_type, use_container_width=True, key="nav_btn_inv"):
         st.session_state["active_nav"] = "inv"
         st.rerun()
 
-nav_r2_c1, nav_r2_c2 = st.columns(2)
-with nav_r2_c1:
+nav_row2_col1, nav_row2_col2 = st.columns(2)
+with nav_row2_col1:
     btn_type = "primary" if st.session_state["active_nav"] == "udhar" else "secondary"
-    if st.button(t["tab_udhar"], type=btn_type, use_container_width=True):
+    if st.button(t["tab_udhar"], type=btn_type, use_container_width=True, key="nav_btn_udhar"):
         st.session_state["active_nav"] = "udhar"
         st.rerun()
 
-with nav_r2_c2:
+with nav_row2_col2:
     btn_type = "primary" if st.session_state["active_nav"] == "radar" else "secondary"
-    if st.button(t["tab_demand"], type=btn_type, use_container_width=True):
+    if st.button(t["tab_demand"], type=btn_type, use_container_width=True, key="nav_btn_radar"):
         st.session_state["active_nav"] = "radar"
         st.rerun()
 
-st.write("")  # Visual breathing space
+st.write("")  # Visual spacing
 
 # =============================================================
 # VIEW 1: Vision OCR Bill Scan
