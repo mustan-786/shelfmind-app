@@ -757,6 +757,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Dialog Modal for Shelf Scan
 if st.session_state.get("show_shelf_cam"):
     @st.dialog(t.get("shelf_dialog_title", "📸 Store Shelf Rack Audit"))
+    @st.dialog(t.get("shelf_dialog_title", "📸 Store Shelf Rack Audit"))
     def open_shelf_audit_dialog():
         st.caption(t.get("shelf_dialog_sub", "Point your camera at the store shelf to capture current inventory arrangement."))
         shelf_img = st.camera_input(t.get("shelf_dialog_snap", "Snap store shelf rack"))
@@ -777,6 +778,13 @@ if st.session_state.get("show_shelf_cam"):
                         )
                         if detected:
                             db.save_shelf_audit(store_phone, detected)
+
+                            # --- Auto-Update Inventory & KPI Metrics from Audit ---
+                            if hasattr(db, "mark_items_as_stagnant_from_audit"):
+                                flagged_count = db.mark_items_as_stagnant_from_audit(store_phone, detected)
+                                if flagged_count > 0:
+                                    st.toast(f"🔄 Auto-flagged {flagged_count} stagnant items in Inventory & Dead Stock KPI!")
+
                             st.toast(t.get("shelf_audit_success", "Audit logged: Recognized {count} shelf products.").format(count=len(detected)))
                             st.session_state["show_shelf_cam"] = False
                             st.rerun()
@@ -784,7 +792,6 @@ if st.session_state.get("show_shelf_cam"):
                             st.error(t.get("shelf_audit_failed", "Audit analysis failed: {err}").format(err=err))
 
     open_shelf_audit_dialog()
-
 # 8. Sidebar Configuration
 with st.sidebar:
     st.markdown("### ⚙️ Store Profile Settings")
