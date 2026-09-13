@@ -302,13 +302,18 @@ lang_key = "mr" if "मराठी" in lang_choice else "hi" if "हिंद�
 t = TRANSLATIONS[lang_key]
 
 # 4. Authentication flow
+# -------------------------------------------------------------
+# 4. Authentication Flow (Login / Register)
+# -------------------------------------------------------------
 if not st.session_state.get("logged_in_store"):
+    # 1. Define logo_html first
     logo_html = (
         f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 52px; width: auto; object-fit: contain; border-radius: 8px;" />'
         if logo_b64
-        else '<span style="font-size: 38px;">📦</span>'
+        else '<span style="font-size: 36px;">📦</span>'
     )
 
+    # 2. Use it in st.markdown
     st.markdown(f"""
         <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
