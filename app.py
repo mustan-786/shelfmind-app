@@ -67,7 +67,7 @@ st.markdown("""
     .kotak-header {
         background: linear-gradient(135deg, #ED1C24 0%, #991B1B 100%);
         border-radius: 16px;
-        padding: 18px 20px;
+        padding: 16px 20px;
         margin-bottom: 20px;
         box-shadow: 0 4px 14px rgba(237, 28, 36, 0.25);
         display: flex;
@@ -164,67 +164,43 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    div.stButton > button[kind="primary"], div.stButton > button:first-child {
+    /* Primary Active Buttons */
+    div.stButton > button[kind="primary"] {
         background-color: #ED1C24 !important;
         color: #FFFFFF !important;
-        border-radius: 8px !important;
-        border: none !important;
-        font-weight: 600 !important;
+        border-radius: 12px !important;
+        border: 1px solid #ED1C24 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 3px 10px rgba(237, 28, 36, 0.3) !important;
+        transition: all 0.2s ease-in-out !important;
     }
-    div.stButton > button:hover {
+    div.stButton > button[kind="primary"]:hover {
         background-color: #C7141B !important;
-        color: #FFFFFF !important;
+        border-color: #C7141B !important;
+        transform: translateY(-1px) !important;
     }
 
-    .stTabs [data-baseweb="tab-list"] {
-        position: relative !important;
-        background-color: transparent !important;
-        border: none !important;
-        gap: 8px !important;
-        padding: 0 0 2px 0 !important;
-        width: 100% !important;
-    }
-    .stTabs [data-baseweb="tab-list"]::after {
-        content: "" !important;
-        position: absolute !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        height: 2px !important;
-        background-color: rgba(128, 128, 128, 0.25) !important;
-        z-index: 1 !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: transparent !important;
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        height: 44px !important;
-        padding: 0 14px !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
+    /* Secondary Inactive Navigation Buttons */
+    div.stButton > button[kind="secondary"] {
+        background-color: var(--secondary-background-color) !important;
         color: var(--text-color) !important;
-        opacity: 0.65;
-        white-space: nowrap !important;
-        transition: opacity 0.2s ease-in-out !important;
-        z-index: 2 !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(128, 128, 128, 0.25) !important;
+        font-weight: 600 !important;
+        opacity: 0.85 !important;
+        transition: all 0.2s ease-in-out !important;
     }
-    .stTabs [aria-selected="true"] {
-        background-color: transparent !important;
+    div.stButton > button[kind="secondary"]:hover {
+        border-color: #ED1C24 !important;
         color: #ED1C24 !important;
-        opacity: 1.0 !important;
-        border: none !important;
+        opacity: 1 !important;
+        transform: translateY(-1px) !important;
     }
-    .stTabs [data-baseweb="tab-highlight"] {
-        background-color: #ED1C24 !important;
-        height: 3px !important;
-        bottom: 0px !important;
-        border-radius: 3px 3px 0 0 !important;
-        z-index: 3 !important;
-        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-    .stTabs [data-baseweb="tab-border"] {
-        display: none !important;
+
+    /* Uniform Height for the 2x2 Action Navigation Grid */
+    div[data-testid="stHorizontalBlock"] div.stButton > button {
+        min-height: 48px !important;
+        font-size: 14px !important;
     }
 
     .badge-surge {
@@ -479,12 +455,77 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-tab_scan, tab_inv, tab_udhar, tab_radar = st.tabs([
-    t["tab_scan"], t["tab_inventory"], t["tab_udhar"], t["tab_demand"]
-])
+# --- SEGMENTED 2x2 ACTION BUTTON NAVIGATION ---
+if "active_nav" not in st.session_state:
+    st.session_state["active_nav"] = "scan"
+
+nav_row1_col1, nav_row1_col2 = st.columns(2)
+with nav_row1_col1:
+    btn_type = "primary" if st.session_state["active_nav"] == "scan" else "secondary"
+    if st.button(t["tab_scan"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "scan"
+        st.rerun()
+
+with nav_row1_col2:
+    btn_type = "primary" if st.session_state["active_nav"] == "inv" else "secondary"
+    if st.button(t["tab_inventory"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "inv"
+        st.rerun()
+
+nav_row2_col1, nav_row2_col2 = st.columns(2)
+with nav_row2_col1:
+    btn_type = "primary" if st.session_state["active_nav"] == "udhar" else "secondary"
+    if st.button(t["tab_udhar"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "udhar"
+        st.rerun()
+
+with nav_row2_col2:
+    btn_type = "primary" if st.session_state["active_nav"] == "radar" else "secondary"
+    if st.button(t["tab_demand"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "radar"
+        st.rerun()
+
+st.write("")  # visual spacing
 
 # --- TAB 1: Vision OCR bill scan ---
-with tab_scan:
+# -------------------------------------------------------------
+# 🧭 6. SEGMENTED 2x2 ACTION BUTTON NAVIGATION
+# -------------------------------------------------------------
+if "active_nav" not in st.session_state:
+    st.session_state["active_nav"] = "scan"
+
+nav_r1_c1, nav_r1_c2 = st.columns(2)
+with nav_r1_c1:
+    btn_type = "primary" if st.session_state["active_nav"] == "scan" else "secondary"
+    if st.button(t["tab_scan"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "scan"
+        st.rerun()
+
+with nav_r1_c2:
+    btn_type = "primary" if st.session_state["active_nav"] == "inv" else "secondary"
+    if st.button(t["tab_inventory"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "inv"
+        st.rerun()
+
+nav_r2_c1, nav_r2_c2 = st.columns(2)
+with nav_r2_c1:
+    btn_type = "primary" if st.session_state["active_nav"] == "udhar" else "secondary"
+    if st.button(t["tab_udhar"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "udhar"
+        st.rerun()
+
+with nav_r2_c2:
+    btn_type = "primary" if st.session_state["active_nav"] == "radar" else "secondary"
+    if st.button(t["tab_demand"], type=btn_type, use_container_width=True):
+        st.session_state["active_nav"] = "radar"
+        st.rerun()
+
+st.write("")  # Visual breathing space
+
+# =============================================================
+# VIEW 1: Vision OCR Bill Scan
+# =============================================================
+if st.session_state["active_nav"] == "scan":
     st.markdown(f"#### {t['upload_heading']}")
     st.caption(t["upload_sub"])
 
@@ -532,8 +573,10 @@ with tab_scan:
                 st.session_state["parsed_items"] = None
                 st.rerun()
 
-# --- TAB 2: Inventory view & manual entry ---
-with tab_inv:
+# =============================================================
+# VIEW 2: Inventory View & Manual Entry
+# =============================================================
+elif st.session_state["active_nav"] == "inv":
     with st.expander(f"➕ {t['manual_add_heading']}"):
         with st.form("manual_stock_form"):
             col_m1, col_m2 = st.columns([2, 1])
@@ -566,8 +609,10 @@ with tab_inv:
     else:
         st.info(t["no_stock"])
 
-# --- TAB 3: Udhar ledger ---
-with tab_udhar:
+# =============================================================
+# VIEW 3: Udhar Ledger
+# =============================================================
+elif st.session_state["active_nav"] == "udhar":
     with st.expander(f"➕ {t['act_add_udhar']}"):
         with st.form("new_udhar_form"):
             u_name = st.text_input(t["customer_name"], placeholder="e.g. Ramesh Kulkarni")
@@ -634,8 +679,10 @@ with tab_udhar:
     else:
         st.info(t["no_udhar"])
 
-# --- TAB 4: Demand radar ---
-with tab_radar:
+# =============================================================
+# VIEW 4: Demand Radar & Dead Stock
+# =============================================================
+elif st.session_state["active_nav"] == "radar":
     st.markdown(f"#### {t['radar_heading']}")
     st.caption(t['radar_sub'])
 
