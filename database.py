@@ -309,6 +309,32 @@ def get_latest_shelf_audits(store_phone, limit=4):
     except Exception:
       pass
   return history
+  def get_audit_comparison_pair(store_phone):
+    """
+    Returns the two most recent shelf audits to enable side-by-side comparison.
+    Returns (latest_audit, previous_audit) or None if fewer than 2 exist.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    clean_phone = store_phone.replace("+91", "").replace(" ", "").strip()
+    cursor.execute("""
+        SELECT audit_date, detected_items, photo_notes 
+        FROM shelf_audits 
+        WHERE store_phone = ? 
+        ORDER BY id DESC LIMIT 2
+    """, (clean_phone,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    if len(rows) < 2:
+        return None, None
+
+    try:
+        latest = {"date": rows[0][0], "items": json.loads(rows[0][1]), "notes": rows[0][2]}
+        previous = {"date": rows[1][0], "items": json.loads(rows[1][1]), "notes": rows[1][2]}
+        return latest, previous
+    except Exception:
+        return None, None
 
 
 def add_udhar_entry(
