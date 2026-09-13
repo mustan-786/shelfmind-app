@@ -433,7 +433,7 @@ st.markdown(
             <h1 style="margin: 0; font-size: 22px; font-weight: 800; line-height: 1.2;">🏪 {shop_name}</h1>
             <div class="kotak-header-sub" style="margin-top: 4px; font-size: 13px;">
                 {t['welcome_back']}, <b>{owner_name}</b>
-                📞 +91 {store_phone}
+                {t📞 +91 {store_phone}
             </div>
         </div>
         <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
