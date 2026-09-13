@@ -46,9 +46,9 @@ st.set_page_config(
 )
 
 logo_html = (
-    f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 48px; width: auto; object-fit: contain; border-radius: 8px;" />'
+    f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 64px; max-height: 68px; width: auto; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));" />'
     if logo_b64
-    else '<span style="font-size: 32px;">📦</span>'
+    else '<span style="font-size: 42px;">📦</span>'
 )
 
 # 2. Kotak 811 theme and styles
@@ -428,14 +428,15 @@ shop_upi = store["upi_id"]
 
 st.markdown(
     f"""
-    <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1>🏪 {shop_name}</h1>
-            <div class="kotak-header-sub">{t['welcome_back']}, <b>{owner_name}</b> · 📞 +91 {store_phone}</div>
+    <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 22px;">
+        <div style="flex: 1; padding-right: 15px;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: 800; line-height: 1.2;">🏪 {shop_name}</h1>
+            <div class="kotak-header-sub" style="margin-top: 4px; font-size: 13px;">
+                {t['welcome_back']}, <b>{owner_name}</b> · 📞 +91 {store_phone}
+            </div>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+        <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             {logo_html}
-            <div class="kotak-badge">UPI: {shop_upi}</div>
         </div>
     </div>
 """,
