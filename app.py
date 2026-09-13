@@ -44,32 +44,6 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed",
 )
-# Inject Web App & Mobile Home Screen Shortcut Icons
-if logo_b64:
-    st.markdown(
-        f"""
-        <script>
-            (function() {{
-                const iconHref = "{logo_b64}";
-                
-                // 1. Mobile Home Screen / Apple Touch Icon
-                let touchIcon = document.querySelector('link[rel="apple-touch-icon"]');
-                if (!touchIcon) {{
-                    touchIcon = document.createElement('link');
-                    touchIcon.rel = 'apple-touch-icon';
-                    document.head.appendChild(touchIcon);
-                }}
-                touchIcon.href = iconHref;
-
-                // 2. Standard Web Favicons
-                let favicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-                favicons.forEach(el => el.href = iconHref);
-            }})();
-        </script>
-        """,
-        unsafe_allow_html=True
-    )
-
 logo_html = (
     f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 64px; max-height: 68px; width: auto; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));" />'
     if logo_b64
