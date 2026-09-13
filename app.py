@@ -1,7 +1,8 @@
+import base64
+from datetime import date
 import io
 import os
 import urllib.parse
-from datetime import date
 from PIL import Image
 import pandas as pd
 import qrcode
@@ -16,19 +17,40 @@ from demand_radar import (
 from ocr_pipeline import extract_invoice_data_with_ai
 import sms_service
 from translations import TRANSLATIONS
-import base64
+
 
 def get_base64_image(image_path):
-    """Encodes a local image to base64 for seamless HTML embedding."""
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
-            encoded = base64.b64encode(img_file.read()).decode()
-            ext = os.path.splitext(image_path)[1].lstrip(".").lower()
-            mime = "image/png" if ext == "png" else "image/jpeg"
-            return f"data:{mime};base64,{encoded}"
-    return None
+  """Encodes a local image to base64 for seamless HTML embedding."""
+  if os.path.exists(image_path):
+    try:
+      with open(image_path, "rb") as img_file:
+        encoded = base64.b64encode(img_file.read()).decode()
+        ext = os.path.splitext(image_path)[1].lstrip(".").lower()
+        mime = "image/png" if ext == "png" else "image/jpeg"
+        return f"data:{mime};base64,{encoded}"
+    except Exception:
+      return None
+  return None
 
-logo_b64 = get_base64_image("smlogo.png")
+
+# 1. Page configuration & Global Logo
+logo_path = "smlogo.png"
+logo_b64 = get_base64_image(logo_path)
+page_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
+
+st.set_page_config(
+    page_title="SHELF MIND",
+    page_icon=page_icon,
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+logo_html = (
+    f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 48px; width:'
+    ' auto; object-fit: contain; border-radius: 8px;" />'
+    if logo_b64
+    else '<span style="font-size: 32px;">📦</span>'
+)
 
 # 1. Page configuration
 logo_path = "smlogo.png"
@@ -314,17 +336,20 @@ if not st.session_state.get("logged_in_store"):
     )
 
     # 2. Use it in st.markdown
-    st.markdown(f"""
-        <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 style="margin: 0; font-size: 24px; font-weight: 800;">{t['app_title']}</h1>
-                <div class="kotak-header-sub">{t['app_tagline']}</div>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center;">
-                {logo_html}
-            </div>
+    st.markdown(
+    f"""
+    <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 800;">{t['app_title']}</h1>
+            <div class="kotak-header-sub">{t['app_tagline']}</div>
         </div>
-    """, unsafe_allow_html=True)
+        <div style="display: flex; align-items: center; justify-content: center;">
+            {logo_html}
+        </div>
+    </div>
+""",
+    unsafe_allow_html=True,
+)
 
     auth_choice = st.radio("Choose:", ["🔑 Login to Store", "📝 Register New Shop"], horizontal=True, label_visibility="collapsed")
 
@@ -384,18 +409,21 @@ shop_name = store["shop_name"]
 owner_name = store["owner_name"]
 shop_upi = store["upi_id"]
 
-st.markdown(f"""
+st.markdown(
+    f"""
     <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h1 style="margin: 0;">🏪 {shop_name}</h1>
+            <h1>🏪 {shop_name}</h1>
             <div class="kotak-header-sub">{t['welcome_back']}, <b>{owner_name}</b> · 📞 +91 {store_phone}</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div class="kotak-badge">UPI: {shop_upi}</div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
             {logo_html}
+            <div class="kotak-badge">UPI: {shop_upi}</div>
         </div>
     </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 skus, capital, dead = db.get_kpi_metrics(store_phone)
 total_udhar = db.get_total_udhar_pending(store_phone)
 
