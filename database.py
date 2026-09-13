@@ -280,6 +280,37 @@ def save_shelf_audit(store_phone, detected_items, notes=""):
   )
   conn.commit()
   conn.close()
+  def mark_items_as_stagnant_from_audit(store_phone, detected_items):
+    """
+    Compares audit observations and marks detected slow/stagnant 
+    or unmoving items in the inventory table.
+    """
+    if not detected_items:
+        return 0
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    clean_phone = store_phone.replace("+91", "").replace(" ", "").strip()
+    updated_count = 0
+
+    for item in detected_items:
+        name = str(item.get("item_name", "")).strip()
+        obs = str(item.get("shelf_observation", "")).lower()
+
+        # Flag items with stagnant placement keywords
+        if any(w in obs for w in ["stagnant", "rear", "leftover", "unmoved", "dusty", "slow"]):
+            cursor.execute("""
+                UPDATE inventory 
+                SET status = 'Dead Stock / Stagnant' 
+                WHERE store_phone = ? 
+                  AND (LOWER(item_name) LIKE ? OR LOWER(?) LIKE '%' || LOWER(item_name) || '%')
+            """, (clean_phone, f"%{name.lower()}%", name.lower()))
+            if cursor.rowcount > 0:
+                updated_count += cursor.rowcount
+
+    conn.commit()
+    conn.close()
+    return updated_count
 
 
 def get_latest_shelf_audits(store_phone, limit=4):
