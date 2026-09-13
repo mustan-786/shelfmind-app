@@ -20,17 +20,17 @@ from translations import TRANSLATIONS
 
 
 def get_base64_image(image_path):
-  """Encodes a local image to base64 for seamless HTML embedding."""
-  if os.path.exists(image_path):
-    try:
-      with open(image_path, "rb") as img_file:
-        encoded = base64.b64encode(img_file.read()).decode()
-        ext = os.path.splitext(image_path)[1].lstrip(".").lower()
-        mime = "image/png" if ext == "png" else "image/jpeg"
-        return f"data:{mime};base64,{encoded}"
-    except Exception:
-      return None
-  return None
+    """Encodes a local image to base64 for seamless HTML embedding."""
+    if os.path.exists(image_path):
+        try:
+            with open(image_path, "rb") as img_file:
+                encoded = base64.b64encode(img_file.read()).decode()
+                ext = os.path.splitext(image_path)[1].lstrip(".").lower()
+                mime = "image/png" if ext == "png" else "image/jpeg"
+                return f"data:{mime};base64,{encoded}"
+        except Exception:
+            return None
+    return None
 
 
 # 1. Page configuration & Global Logo
@@ -46,21 +46,9 @@ st.set_page_config(
 )
 
 logo_html = (
-    f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 48px; width:'
-    ' auto; object-fit: contain; border-radius: 8px;" />'
+    f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 48px; width: auto; object-fit: contain; border-radius: 8px;" />'
     if logo_b64
     else '<span style="font-size: 32px;">📦</span>'
-)
-
-# 1. Page configuration
-logo_path = "smlogo.png"
-page_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
-
-st.set_page_config(
-    page_title="SHELF MIND",
-    page_icon=page_icon,
-    layout="centered",
-    initial_sidebar_state="collapsed",
 )
 
 # 2. Kotak 811 theme and styles
@@ -323,33 +311,62 @@ with lang_col2:
 lang_key = "mr" if "मराठी" in lang_choice else "hi" if "हिंदी" in lang_choice else "en"
 t = TRANSLATIONS[lang_key]
 
-# 4. Authentication flow
+
+# --- TOP LEVEL DIALOG DEFINITION ---
+@st.dialog(t.get("shelf_dialog_title", "📸 Store Shelf Rack Audit"))
+def open_shelf_audit_dialog(current_store_phone, current_lang_choice):
+    st.caption(t.get("shelf_dialog_sub", "Point your camera at the store shelf to capture current inventory arrangement."))
+    shelf_img = st.camera_input(t.get("shelf_dialog_snap", "Snap store shelf rack"))
+
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        if st.button(t.get("shelf_dialog_cancel", "Cancel"), use_container_width=True):
+            st.session_state["show_shelf_cam"] = False
+            st.rerun()
+
+    with col_c2:
+        if shelf_img is not None:
+            if st.button(t.get("shelf_dialog_btn", "⚡ Inspect Movement"), type="primary", use_container_width=True):
+                with st.spinner(t.get("shelf_dialog_analyzing", "AI scanning shelf brands and packet counts...")):
+                    detected, err = audit_shelf_photo_with_ai(
+                        shelf_img.getvalue(),
+                        mime_type=shelf_img.type or "image/jpeg",
+                        lang_name=current_lang_choice
+                    )
+                    if detected:
+                        db.save_shelf_audit(current_store_phone, detected)
+
+                        # Auto-update Inventory & KPI Metrics from Audit
+                        if hasattr(db, "mark_items_as_stagnant_from_audit"):
+                            flagged_count = db.mark_items_as_stagnant_from_audit(current_store_phone, detected)
+                            if flagged_count > 0:
+                                st.toast(f"🔄 Auto-flagged {flagged_count} stagnant items in Inventory & Dead Stock KPI!")
+
+                        st.toast(t.get("shelf_audit_success", "Audit logged: Recognized {count} shelf products.").format(count=len(detected)))
+                        st.session_state["show_shelf_cam"] = False
+                        st.rerun()
+                    else:
+                        st.error(t.get("shelf_audit_failed", "Audit analysis failed: {err}").format(err=err))
+
+
 # -------------------------------------------------------------
 # 4. Authentication Flow (Login / Register)
 # -------------------------------------------------------------
 if not st.session_state.get("logged_in_store"):
-    # 1. Define logo_html first
-    logo_html = (
-        f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 52px; width: auto; object-fit: contain; border-radius: 8px;" />'
-        if logo_b64
-        else '<span style="font-size: 36px;">📦</span>'
-    )
-
-    # 2. Use it in st.markdown
     st.markdown(
-    f"""
-    <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1 style="margin: 0; font-size: 24px; font-weight: 800;">{t['app_title']}</h1>
-            <div class="kotak-header-sub">{t['app_tagline']}</div>
+        f"""
+        <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="margin: 0; font-size: 24px; font-weight: 800;">{t['app_title']}</h1>
+                <div class="kotak-header-sub">{t['app_tagline']}</div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                {logo_html}
+            </div>
         </div>
-        <div style="display: flex; align-items: center; justify-content: center;">
-            {logo_html}
-        </div>
-    </div>
-""",
-    unsafe_allow_html=True,
-)
+    """,
+        unsafe_allow_html=True,
+    )
 
     auth_choice = st.radio("Choose:", ["🔑 Login to Store", "📝 Register New Shop"], horizontal=True, label_visibility="collapsed")
 
@@ -712,8 +729,7 @@ with tab_radar:
         elif error_msg:
             st.error(f"⚠️ Error from Demand Engine: {error_msg}")
 
-    # Dead Stock Section
-   # --- Visual Proof: Side-by-Side Shelf Audit Comparison ---
+    # --- Visual Proof: Side-by-Side Shelf Audit Comparison ---
     st.divider()
     with st.expander(f"🖼️ {t.get('shelf_comp_heading', 'Shelf Rack Visual Proof & Audit History')}"):
         st.caption(t.get('shelf_comp_sub', 'Compare recent shelf scans to visually verify stagnant stock.'))
@@ -722,6 +738,7 @@ with tab_radar:
             latest_audit, prev_audit = db.get_audit_comparison_pair(store_phone)
         else:
             latest_audit, prev_audit = None, None
+
         if latest_audit and prev_audit:
             col_prev, col_latest = st.columns(2)
 
@@ -798,6 +815,7 @@ with tab_radar:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+
 # -------------------------------------------------------------
 # 📸 7. FLOATING CENTER SHELF SCANNER BUTTON (Kotak 811 FAB)
 # -------------------------------------------------------------
@@ -810,44 +828,10 @@ if st.button(t.get("fab_scan_label", "📸 Scan Shelf Rack"), key="btn_center_sh
     st.session_state["show_shelf_cam"] = True
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Dialog Modal for Shelf Scan
+# Dialog Modal Call for Shelf Scan
 if st.session_state.get("show_shelf_cam"):
-    @st.dialog(t.get("shelf_dialog_title", "📸 Store Shelf Rack Audit"))
-    @st.dialog(t.get("shelf_dialog_title", "📸 Store Shelf Rack Audit"))
-    def open_shelf_audit_dialog():
-        st.caption(t.get("shelf_dialog_sub", "Point your camera at the store shelf to capture current inventory arrangement."))
-        shelf_img = st.camera_input(t.get("shelf_dialog_snap", "Snap store shelf rack"))
+    open_shelf_audit_dialog(store_phone, lang_choice)
 
-        col_c1, col_c2 = st.columns(2)
-        with col_c1:
-            if st.button(t.get("shelf_dialog_cancel", "Cancel"), use_container_width=True):
-                st.session_state["show_shelf_cam"] = False
-                st.rerun()
-        with col_c2:
-            if shelf_img is not None:
-                if st.button(t.get("shelf_dialog_btn", "⚡ Inspect Movement"), type="primary", use_container_width=True):
-                    with st.spinner(t.get("shelf_dialog_analyzing", "AI scanning shelf brands and packet counts...")):
-                        detected, err = audit_shelf_photo_with_ai(
-                            shelf_img.getvalue(),
-                            mime_type=shelf_img.type or "image/jpeg",
-                            lang_name=lang_choice
-                        )
-                        if detected:
-                            db.save_shelf_audit(store_phone, detected)
-
-                            # --- Auto-Update Inventory & KPI Metrics from Audit ---
-                            if hasattr(db, "mark_items_as_stagnant_from_audit"):
-                                flagged_count = db.mark_items_as_stagnant_from_audit(store_phone, detected)
-                                if flagged_count > 0:
-                                    st.toast(f"🔄 Auto-flagged {flagged_count} stagnant items in Inventory & Dead Stock KPI!")
-
-                            st.toast(t.get("shelf_audit_success", "Audit logged: Recognized {count} shelf products.").format(count=len(detected)))
-                            st.session_state["show_shelf_cam"] = False
-                            st.rerun()
-                        else:
-                            st.error(t.get("shelf_audit_failed", "Audit analysis failed: {err}").format(err=err))
-
-    open_shelf_audit_dialog()
 # 8. Sidebar Configuration
 with st.sidebar:
     st.markdown("### ⚙️ Store Profile Settings")
