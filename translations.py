@@ -56,6 +56,12 @@ TRANSLATIONS = {
         "shelf_dialog_btn": "⚡ Inspect Movement",
         "shelf_dialog_analyzing": "AI scanning shelf brands and packet counts...",
         "shelf_audit_success": "Audit logged: Recognized {count} shelf products.",
+        "shelf_comp_heading": "📸 Shelf Rack Visual Proof & Audit History",
+        "shelf_comp_sub": "Compare recent shelf scans to visually verify stagnant stock.",
+        "shelf_comp_latest": "Latest Audit Scan",
+        "shelf_comp_prev": "Previous Audit Scan",
+        "shelf_comp_need_two": "Complete at least 2 shelf audits to unlock side-by-side movement tracking.",
+        "shelf_comp_items_found": "items recognized",
         "shelf_audit_failed": "Audit analysis failed: {err}"
     },
     "mr": {
@@ -115,6 +121,12 @@ TRANSLATIONS = {
         "shelf_dialog_btn": "⚡ मालाची हालचाल तपासा",
         "shelf_dialog_analyzing": "एआय ब्रँड्स आणि पाकिटांची मोजणी करत आहे...",
         "shelf_audit_success": "तपासणी पूर्ण: {count} वस्तूंची नोंद झाली.",
+        "shelf_comp_heading": "📸 रॅक तपासणीचा इतिहास व पुरावा",
+        "shelf_comp_sub": "अडकलेला माल डोळ्यांसमोर पाहण्यासाठी मागील व सध्याच्या रॅक तपासणीची तुलना करा.",
+        "shelf_comp_latest": "सध्याची तपासणी (Latest)",
+        "shelf_comp_prev": "मागील तपासणी (Previous)",
+        "shelf_comp_need_two": "तुलना पाहण्यासाठी किमान २ वेळा रॅकचा फोटो काढून तपासणी करा.",
+        "shelf_comp_items_found": "वस्तूंची नोंद",
         "shelf_audit_failed": "तपासणी अयशस्वी: {err}"
     },
     "hi": {
@@ -174,6 +186,12 @@ TRANSLATIONS = {
         "shelf_dialog_btn": "⚡ सामान की गतिविधि जांचें",
         "shelf_dialog_analyzing": "एआई ब्रांड्स और पैकेटों की गिनती कर रहा है...",
         "shelf_audit_success": "जांच पूरी हुई: {count} सामानों की पहचान की गई।",
+        "shelf_comp_heading": "📸 रैक जांच इतिहास और दृश्य प्रमाण",
+        "shelf_comp_sub": "न बिकने वाले सामान की पुष्टि के लिए पिछले और वर्तमान स्कैन की तुलना करें।",
+        "shelf_comp_latest": "वर्तमान जांच (Latest)",
+        "shelf_comp_prev": "पिछली जांच (Previous)",
+        "shelf_comp_need_two": "तुलना देखने के लिए कम से कम २ बार रैक स्कैन करें।",
+        "shelf_comp_items_found": "सामान दर्ज",
         "shelf_audit_failed": "जांच असफल: {err}"
     }
 }
