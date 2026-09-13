@@ -16,9 +16,22 @@ from demand_radar import (
 from ocr_pipeline import extract_invoice_data_with_ai
 import sms_service
 from translations import TRANSLATIONS
+import base64
+
+def get_base64_image(image_path):
+    """Encodes a local image to base64 for seamless HTML embedding."""
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            encoded = base64.b64encode(img_file.read()).decode()
+            ext = os.path.splitext(image_path)[1].lstrip(".").lower()
+            mime = "image/png" if ext == "png" else "image/jpeg"
+            return f"data:{mime};base64,{encoded}"
+    return None
+
+logo_b64 = get_base64_image("smlogo.png")
 
 # 1. Page configuration
-logo_path = "logo.png"
+logo_path = "smlogo.png"
 page_icon = Image.open(logo_path) if os.path.exists(logo_path) else "📦"
 
 st.set_page_config(
@@ -290,13 +303,21 @@ t = TRANSLATIONS[lang_key]
 
 # 4. Authentication flow
 if not st.session_state.get("logged_in_store"):
+    logo_html = (
+        f'<img src="{logo_b64}" alt="Shelf Mind Logo" style="height: 52px; width: auto; object-fit: contain; border-radius: 8px;" />'
+        if logo_b64
+        else '<span style="font-size: 38px;">📦</span>'
+    )
+
     st.markdown(f"""
-        <div class="kotak-header">
+        <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h1>📦 {t['app_title']}</h1>
+                <h1 style="margin: 0; font-size: 24px; font-weight: 800;">{t['app_title']}</h1>
                 <div class="kotak-header-sub">{t['app_tagline']}</div>
             </div>
-            <div class="kotak-badge">Kirana v2.5</div>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                {logo_html}
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -359,15 +380,17 @@ owner_name = store["owner_name"]
 shop_upi = store["upi_id"]
 
 st.markdown(f"""
-    <div class="kotak-header">
+    <div class="kotak-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h1>🏪 {shop_name}</h1>
+            <h1 style="margin: 0;">🏪 {shop_name}</h1>
             <div class="kotak-header-sub">{t['welcome_back']}, <b>{owner_name}</b> · 📞 +91 {store_phone}</div>
         </div>
-        <div class="kotak-badge">UPI: {shop_upi}</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="kotak-badge">UPI: {shop_upi}</div>
+            {logo_html}
+        </div>
     </div>
 """, unsafe_allow_html=True)
-
 skus, capital, dead = db.get_kpi_metrics(store_phone)
 total_udhar = db.get_total_udhar_pending(store_phone)
 
