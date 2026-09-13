@@ -657,6 +657,33 @@ with tab_radar:
             st.error(f"⚠️ Error from Demand Engine: {error_msg}")
 
     # Dead Stock Section
+   # --- Visual Proof: Side-by-Side Shelf Audit Comparison ---
+    st.divider()
+    with st.expander(f"🖼️ {t.get('shelf_comp_heading', 'Shelf Rack Visual Proof & Audit History')}"):
+        st.caption(t.get('shelf_comp_sub', 'Compare recent shelf scans to visually verify stagnant stock.'))
+
+        latest_audit, prev_audit = db.get_audit_comparison_pair(store_phone)
+
+        if latest_audit and prev_audit:
+            col_prev, col_latest = st.columns(2)
+
+            with col_prev:
+                st.markdown(f"**📅 {t.get('shelf_comp_prev', 'Previous Scan')}: {prev_audit['date']}**")
+                st.caption(f"{len(prev_audit['items'])} {t.get('shelf_comp_items_found', 'items recognized')}")
+                for itm in prev_audit["items"][:6]:
+                    count_display = f" (~{itm.get('estimated_count', 1)} pcs)" if itm.get('estimated_count') else ""
+                    st.markdown(f"- **{itm.get('item_name')}**{count_display}")
+
+            with col_latest:
+                st.markdown(f"**📅 {t.get('shelf_comp_latest', 'Latest Scan')}: {latest_audit['date']}**")
+                st.caption(f"{len(latest_audit['items'])} {t.get('shelf_comp_items_found', 'items recognized')}")
+                for itm in latest_audit["items"][:6]:
+                    count_display = f" (~{itm.get('estimated_count', 1)} pcs)" if itm.get('estimated_count') else ""
+                    st.markdown(f"- **{itm.get('item_name')}**{count_display}")
+        else:
+            st.info(t.get("shelf_comp_need_two", "Complete at least 2 shelf audits to unlock side-by-side movement tracking."))
+
+    # --- Dead Stock Section ---
     st.divider()
     st.markdown(f"#### {t['dead_tab_heading']}")
     st.caption(t['dead_tab_sub'])
@@ -713,7 +740,6 @@ with tab_radar:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-
 # -------------------------------------------------------------
 # 📸 7. FLOATING CENTER SHELF SCANNER BUTTON (Kotak 811 FAB)
 # -------------------------------------------------------------
